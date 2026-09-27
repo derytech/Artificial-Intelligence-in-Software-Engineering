@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Flexbox & Grid Master Playground</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Fira Code -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(71, 85, 105, 1);
+        }
+
+        /* Glassmorphism utility classes */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Grid lines visual overlay */
+        .grid-overlay-active {
+            background-image:
+                linear-gradient(to right, rgba(99, 102, 241, 0.15) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(99, 102, 241, 0.15) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* Axis directional indicators for Flexbox */
+        .flex-axis-indicator {
+            position: absolute;
+            pointer-events: none;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 9999px;
+            padding: 2px 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            transition: all 0.2s ease;
+        }
+
+        .main-axis-tag {
+            background: rgba(239, 68, 68, 0.25);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.5);
+        }
+
+        .cross-axis-tag {
+            background: rgba(59, 130, 246, 0.25);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.5);
+        }
+
+        /* Smooth canvas transitions for item box updates */
+        .playground-item {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+
+        /* Selected item pulse glowing indicator */
+        .item-selected {
+            ring: 3px;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+            border-color: #818cf8 !important;
+            z-index: 10;
+        }
+
+        /* Custom range slider styling */
+        input[type=range] {
+            height: 6px;
+            border-radius: 4px;
+        }
+
+        /* Accordion transition logic */
+        .accordion-content {
+            transition: max-height 0.3s ease-in-out, opacity 0.25s ease-in-out;
+            max-height: 1000px;
+            opacity: 1;
+            overflow: hidden;
+        }
+
+        .accordion-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- HEADER BAR -->
+    <header
+        class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-4 lg:px-6 py-3 flex items-center justify-between shadow-xl">
+        <div class="flex items-center space-x-3">
+            <div
+                class="bg-gradient-to-tr from-indigo-600 via-purple-600 to-amber-500 text-white p-2.5 rounded-xl shadow-lg shadow-indigo-500/20">
+                <i class="fa-solid fa-layer-group text-xl"></i>
+            </div>
+            <div>
+                <h1
+                    class="font-bold text-lg md:text-xl leading-tight tracking-wide text-white flex items-center space-x-2">
+                    <span>CSS Flexbox & Grid Master</span>
+                    <span id="headerModeBadge"
+                        class="text-[10px] px-2 py-0.5 rounded-full font-mono bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-widest font-semibold">FLEXBOX</span>
+                </h1>
+                <p class="text-xs text-slate-400 hidden sm:block">Interactive layout inspector, live grid/axis overlays
+                    & code generator</p>
+            </div>
+        </div>
+
+        <!-- QUICK ACTION CONTROLS & PRESETS MENU -->
+        <div class="flex items-center space-x-2.5">
+            <!-- Preset Dropdown Menu -->
+            <div class="relative inline-block text-left">
+                <select id="presetSelect"
+                    class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium px-3 py-2 rounded-xl border border-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer transition shadow-sm">
+                    <option value="" disabled selected>⚡ Load Preset Layout...</option>
+                    <optgroup label="Flexbox Presets">
+                        <option value="flex-center">Flex: Centered Hero Box</option>
+                        <option value="flex-navbar">Flex: Space-Between Navigation Bar</option>
+                        <option value="flex-cards">Flex: Wrapping Cards Array</option>
+                        <option value="flex-sidebar">Flex: Sidebar & Fluid Main Body</option>
+                    </optgroup>
+                    <optgroup label="Grid Presets">
+                        <option value="grid-cards">Grid: Auto-Fit Responsive Cards</option>
+                        <option value="grid-holy-grail">Grid: Classic Holy Grail Layout</option>
+                        <option value="grid-dashboard">Grid: Admin Dashboard Tiles</option>
+                        <option value="grid-gallery">Grid: 3-Column Image Gallery</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <!-- Reset Button -->
+            <button id="btnResetAll"
+                class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl transition flex items-center space-x-1.5 border border-slate-700 shadow-sm"
+                title="Reset to initial state">
+                <i class="fa-solid fa-rotate-left text-slate-400"></i>
+                <span class="hidden md:inline">Reset</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN INTERFACE LAYOUT -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+
+        <!-- LEFT SIDEBAR: CONTROL PANELS -->
+        <aside
+            class="lg:col-span-5 xl:col-span-4 bg-slate-900/95 border-r border-slate-800/80 p-4 space-y-4 overflow-y-auto max-h-[calc(100vh-61px)]">
+
+            <!-- SECTION 1: CONTAINER DISPLAY MODE TOGGLE -->
+            <div class="glass-card p-3.5 rounded-2xl border border-slate-800 space-y-3">
+                <div class="flex justify-between items-center border-b border-slate-800/80 pb-2.5">
+                    <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-cubes text-indigo-400 mr-2"></i> Container Layout Mode
+                    </h2>
+                    <span class="text-[10px] text-slate-400 font-mono">display</span>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <button id="btnDisplayFlex"
+                        class="mode-btn py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition border border-indigo-500/50 bg-indigo-600/30 text-white shadow-md">
+                        <i class="fa-solid fa-arrows-left-right text-xs"></i>
+                        <span>flex</span>
+                    </button>
+                    <button id="btnDisplayGrid"
+                        class="mode-btn py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition border border-slate-700 bg-slate-800/60 text-slate-400 hover:text-slate-200">
+                        <i class="fa-solid fa-table-cells text-xs"></i>
+                        <span>grid</span>
+                    </button>
+                    <button id="btnDisplayBlock"
+                        class="mode-btn py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition border border-slate-700 bg-slate-800/60 text-slate-400 hover:text-slate-200">
+                        <i class="fa-solid fa-bars text-xs"></i>
+                        <span>block</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SECTION 2: CONTAINER PROPERTIES PANEL -->
+            <div class="glass-card p-3.5 rounded-2xl border border-slate-800 space-y-3.5">
+                <div class="flex justify-between items-center border-b border-slate-800/80 pb-2.5 cursor-pointer"
+                    id="headingContainerProps">
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-sliders text-indigo-400 mr-2"></i> Container CSS Properties
+                    </h2>
+                    <i id="iconAccordionContainer"
+                        class="fa-solid fa-chevron-up text-xs text-slate-400 transition-transform"></i>
+                </div>
+
+                <div id="contentContainerProps" class="accordion-content space-y-3">
+
+                    <!-- FLEXBOX ONLY CONTROLS -->
+                    <div id="flexOnlyControls" class="space-y-3">
+                        <!-- flex-direction -->
+                        <div>
+                            <div class="flex justify-between text-xs font-mono text-slate-300 mb-1">
+                                <span>flex-direction</span>
+                                <span class="text-slate-500 font-sans text-[11px]" title="Main orientation axis">Main
+                                    axis direction</span>
+                            </div>
+                            <select id="selectFlexDirection"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-indigo-300 font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option value="row" selected>row (Horizontal →)</option>
+                                <option value="column">column (Vertical ↓)</option>
+                                <option value="row-reverse">row-reverse (Horizontal ←)</option>
+                                <option value="column-reverse">column-reverse (Vertical ↑)</option>
+                            </select>
+                        </div>
+
+                        <!-- flex-wrap -->
+                        <div>
+                            <div class="flex justify-between text-xs font-mono text-slate-300 mb-1">
+                                <span>flex-wrap</span>
+                                <span class="text-slate-500 font-sans text-[11px]">Item wrapping</span>
+                            </div>
+                            <select id="selectFlexWrap"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-indigo-300 font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option value="nowrap" selected>nowrap</option>
+                                <option value="wrap">wrap</option>
+                                <option value="wrap-reverse">wrap-reverse</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- GRID ONLY CONTROLS -->
+                    <div id="gridOnlyControls" class="space-y-3 hidden">
+                        <!-- grid-template-columns -->
+                        <div>
+                            <div class="flex justify-between text-xs font-mono text-slate-300 mb-1">
+                                <span>grid-template-columns</span>
+                                <span class="text-slate-500 font-sans text-[11px]">Column tracks</span>
+                            </div>
+                            <select id="selectGridCols"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-purple-300 font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option value="1fr 1fr">1fr 1fr (2 Equal)</option>
+                                <option value="1fr 1fr 1fr" selected>1fr 1fr 1fr (3 Equal)</option>
+                                <option value="1fr 2fr 1fr">1fr 2fr 1fr (Weighted Middle)</option>
+                                <option value="repeat(auto-fit, minmax(120px, 1fr))">repeat(auto-fit, minmax(120px,
+                                    1fr))</option>
+                                <option value="repeat(auto-fill, minmax(100px, 1fr))">repeat(auto-fill, minmax(100px,
+                                    1fr))</option>
+                                <option value="100px 1fr 100px">100px 1fr 100px (Fixed Sidebars)</option>
+                                <option value="200px 1fr">200px 1fr (Sidebar Layout)</option>
+                                <option value="custom">-- Custom CSS Value --</option>
+                            </select>
+                            <input type="text" id="customGridCols" placeholder="e.g. 150px minmax(200px, 1fr)"
+                                class="w-full mt-1.5 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-purple-200 font-mono hidden">
+                        </div>
+
+                        <!-- grid-template-rows -->
+                        <div>
+                            <div class="flex justify-between text-xs font-mono text-slate-300 mb-1">
+                                <span>grid-template-rows</span>
+                                <span class="text-slate-500 font-sans text-[11px]">Row tracks</span>
+                            </div>
+                            <select id="selectGridRows"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-purple-300 font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option value="auto" selected>auto (Intrinsic Row Height)</option>
+                                <option value="1fr 1fr">1fr 1fr (2 Equal Rows)</option>
+                                <option value="auto 1fr auto">auto 1fr auto (Header/Body/Footer)</option>
+                                <option value="repeat(3, 100px)">repeat(3, 100px) (Fixed 100px Rows)</option>
+                            </select>
+                        </div>
+
+                        <!-- justify-items -->
+                        <div>
+                            <div class="flex justify-between text-xs font-mono text-slate-300 mb-1">
+                                <span>justify-items</span>
+                                <span class="text-slate-500 font-sans text-[11px]">Grid item horizontal alignment</span>
+                            </div>
+                            <select id="selectJustifyItems"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-purple-300 font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option value="stretch" selected>stretch</option>
+                                <option value="start">start</option>
+                                <option value="end">end</option>
+                                <option value="center">center</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- COMMON ALIGNMENT CONTROLS (FLEX & GRID) -->
+                    <!-- justify-content -->
+                    <div>
+                        <div class="flex justify-between text-xs font-mono text-slate-300 mb-1">
+                            <span>justify-content</span>
+                            <span id="labelJustifyContent" class="text-slate-500 font-sans text-[11px]">Main Axis
+                                Alignment</span>
+                        </div>
+                        <select id="selectJustifyContent"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-amber-300 font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="flex-start" selected>flex-start / start</option>
+                            <option value="flex-end">flex-end / end</option>
+                            <option value="center">center</option>
+                            <option value="space-between">space-between</option>
+                            <option value="space-around">space-around</option>
+                            <option value="space-evenly">space-evenly</option>
+                        </select>
+                    </div>
+
+                    <!-- align-items -->
+                    <div>
+                        <div class="flex justify-between text-xs font-mono text-slate-300 mb-1">
+                            <span>align-items</span>
+                            <span id="labelAlignItems" class="text-slate-500 font-sans text-[11px]">Cross Axis
+                                Alignment</span>
+                        </div>
+                        <select id="selectAlignItems"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-amber-300 font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="stretch" selected>stretch</option>
+                            <option value="flex-start">flex-start / start</option>
+                            <option value="flex-end">flex-end / end</option>
+                            <option value="center">center</option>
+                            <option value="baseline">baseline</option>
+                        </select>
+                    </div>
+
+                    <!-- align-content -->
+                    <div>
+                        <div class="flex justify-between text-xs font-mono text-slate-300 mb-1">
+                            <span>align-content</span>
+                            <span class="text-slate-500 font-sans text-[11px]">Multi-line track distribution</span>
+                        </div>
+                        <select id="selectAlignContent"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-amber-300 font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="normal" selected>normal / stretch</option>
+                            <option value="flex-start">flex-start / start</option>
+                            <option value="flex-end">flex-end / end</option>
+                            <option value="center">center</option>
+                            <option value="space-between">space-between</option>
+                            <option value="space-around">space-around</option>
+                        </select>
+                    </div>
+
+                    <!-- GAP SPACING CONTROLS -->
+                    <div class="pt-2 border-t border-slate-800/80 space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-mono text-emerald-400">gap:</span>
+                            <span id="valGap" class="font-mono text-emerald-300">16px</span>
+                        </div>
+                        <input type="range" id="sliderGap" min="0" max="60" value="16"
+                            class="w-full accent-emerald-500 bg-slate-950 appearance-none cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: SELECTED ITEM OVERRIDE PROPERTIES -->
+            <div class="glass-card p-3.5 rounded-2xl border border-slate-800 space-y-3.5">
+                <div class="flex justify-between items-center border-b border-slate-800/80 pb-2.5">
+                    <h2 class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-cube text-emerald-400 mr-2"></i> Selected Child Item Controls
+                    </h2>
+                    <span id="selectedItemBadge"
+                        class="text-[10px] px-2 py-0.5 rounded-full font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        Item #1 Selected
+                    </span>
+                </div>
+
+                <div class="space-y-3">
+                    <!-- Item Selector Pills -->
+                    <div class="flex items-center space-x-1.5 overflow-x-auto pb-1" id="itemSelectionPills">
+                        <!-- Dynamic item buttons generated via JavaScript -->
+                    </div>
+
+                    <!-- Item Sizing & Order Sliders -->
+                    <div class="grid grid-cols-2 gap-3 pt-1">
+                        <!-- flex-grow -->
+                        <div>
+                            <div class="flex justify-between text-[11px] font-mono text-slate-300 mb-1">
+                                <span>flex-grow</span>
+                                <span id="valFlexGrow" class="text-indigo-400 font-bold">0</span>
+                            </div>
+                            <input type="range" id="sliderFlexGrow" min="0" max="5" value="0"
+                                class="w-full accent-indigo-500 bg-slate-950 appearance-none cursor-pointer">
+                        </div>
+
+                        <!-- flex-shrink -->
+                        <div>
+                            <div class="flex justify-between text-[11px] font-mono text-slate-300 mb-1">
+                                <span>flex-shrink</span>
+                                <span id="valFlexShrink" class="text-indigo-400 font-bold">1</span>
+                            </div>
+                            <input type="range" id="sliderFlexShrink" min="0" max="5" value="1"
+                                class="w-full accent-indigo-500 bg-slate-950 appearance-none cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- order -->
+                        <div>
+                            <div class="flex justify-between text-[11px] font-mono text-slate-300 mb-1">
+                                <span>order</span>
+                                <span id="valItemOrder" class="text-indigo-400 font-bold">0</span>
+                            </div>
+                            <input type="range" id="sliderItemOrder" min="-5" max="10" value="0"
+                                class="w-full accent-indigo-500 bg-slate-950 appearance-none cursor-pointer">
+                        </div>
+
+                        <!-- align-self -->
+                        <div>
+                            <div class="text-[11px] font-mono text-slate-300 mb-1">align-self</div>
+                            <select id="selectAlignSelf"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1 text-xs text-emerald-300 font-mono outline-none">
+                                <option value="auto">auto</option>
+                                <option value="flex-start">flex-start / start</option>
+                                <option value="flex-end">flex-end / end</option>
+                                <option value="center">center</option>
+                                <option value="stretch">stretch</option>
+                                <option value="baseline">baseline</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Grid Position Specific Properties -->
+                    <div id="itemGridSpecificProps"
+                        class="grid grid-cols-2 gap-3 border-t border-slate-800/80 pt-2 hidden">
+                        <!-- grid-column -->
+                        <div>
+                            <label class="block text-[11px] font-mono text-slate-300 mb-1">grid-column</label>
+                            <input type="text" id="inputGridColumn" placeholder="e.g. span 2 or 1 / 3"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1 text-xs text-purple-300 font-mono outline-none">
+                        </div>
+
+                        <!-- grid-row -->
+                        <div>
+                            <label class="block text-[11px] font-mono text-slate-300 mb-1">grid-row</label>
+                            <input type="text" id="inputGridRow" placeholder="e.g. span 2 or 2 / 4"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1 text-xs text-purple-300 font-mono outline-none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EDUCATIONAL INSIGHT TOOLTIP BOX -->
+            <div id="educationalToolTip"
+                class="bg-indigo-950/40 border border-indigo-500/30 p-3.5 rounded-2xl text-xs space-y-1.5 shadow-md">
+                <div class="flex items-center space-x-2 text-indigo-300 font-semibold">
+                    <i class="fa-solid fa-lightbulb text-amber-400"></i>
+                    <span id="tooltipTitle">Flexbox Layout Overview</span>
+                </div>
+                <p id="tooltipBody" class="text-slate-300 leading-relaxed text-[11px]">
+                    Flexbox provides 1-dimensional item alignment along either a main horizontal axis or vertical cross
+                    axis. Perfect for UI components, navigation bars, and flexible content cards.
+                </p>
+            </div>
+
+        </aside>
+
+        <!-- RIGHT AREA: LIVE PREVIEW CANVAS & GENERATED CODE -->
+        <section
+            class="lg:col-span-7 xl:col-span-8 bg-slate-950 p-4 md:p-6 flex flex-col justify-between space-y-4 overflow-y-auto max-h-[calc(100vh-61px)]">
+
+            <!-- CANVAS CARD HEADER & VISUAL TOOLBAR -->
+            <div
+                class="bg-slate-900 border-2 border-slate-800/90 rounded-3xl p-4 md:p-6 shadow-2xl relative flex flex-col min-h-[420px] flex-1">
+
+                <div class="flex flex-wrap items-center justify-between border-b border-slate-800/80 pb-3 mb-4 gap-2">
+                    <div class="flex items-center space-x-2.5">
+                        <span class="flex h-2.5 w-2.5 relative">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                        <h2
+                            class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center space-x-2">
+                            <span>Interactive Flow Canvas</span>
+                            <span id="canvasDimBadge" class="font-mono text-[10px] text-slate-500 font-normal"></span>
+                        </h2>
+                    </div>
+
+                    <!-- CANVAS TOOLBAR TOGGLES & ITEM COUNT BUTTONS -->
+                    <div class="flex items-center space-x-3 text-xs">
+                        <!-- Grid Overlay Toggle -->
+                        <button id="btnToggleGridOverlay"
+                            class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center space-x-1.5 transition">
+                            <i class="fa-solid fa-border-top-left text-slate-400"></i>
+                            <span class="hidden sm:inline">Grid Lines</span>
+                        </button>
+
+                        <!-- Flex Axis Overlay Toggle -->
+                        <button id="btnToggleAxisOverlay"
+                            class="px-2.5 py-1 rounded-lg bg-indigo-900/40 border border-indigo-500/40 text-indigo-300 flex items-center space-x-1.5 transition">
+                            <i class="fa-solid fa-compass"></i>
+                            <span class="hidden sm:inline">Axis Helpers</span>
+                        </button>
+
+                        <!-- Add/Remove Child Item Buttons -->
+                        <div class="flex items-center bg-slate-950 rounded-xl border border-slate-800 p-0.5">
+                            <button id="btnRemoveItem"
+                                class="px-2.5 py-1 text-slate-300 hover:bg-slate-800 rounded-lg transition font-bold"
+                                title="Remove last item">
+                                <i class="fa-solid fa-minus text-[10px]"></i>
+                            </button>
+                            <span id="itemCountDisplay" class="px-2.5 font-mono text-xs font-bold text-indigo-400">5
+                                items</span>
+                            <button id="btnAddItem"
+                                class="px-2.5 py-1 text-slate-300 hover:bg-slate-800 rounded-lg transition font-bold"
+                                title="Add new item">
+                                <i class="fa-solid fa-plus text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LIVE INTERACTIVE DISPLAY CONTAINER -->
+                <div class="relative flex-1 flex flex-col justify-center min-h-[300px]">
+
+                    <!-- AXIS OVERLAY INDICATORS (DYNAMICAL POSITIONED VIA JS) -->
+                    <div id="mainAxisTag" class="flex-axis-indicator main-axis-tag transition-all">
+                        <i class="fa-solid fa-arrow-right mr-1.5 text-[10px]"></i> Main Axis (row)
+                    </div>
+                    <div id="crossAxisTag" class="flex-axis-indicator cross-axis-tag transition-all">
+                        <i class="fa-solid fa-arrow-down mr-1.5 text-[10px]"></i> Cross Axis
+                    </div>
+
+                    <!-- THE TARGET PLAYGROUND CONTAINER -->
+                    <div id="playgroundContainer"
+                        class="grid-overlay-active w-full h-full min-h-[300px] bg-slate-950/70 border-2 border-dashed border-indigo-500/40 rounded-2xl p-4 transition-all duration-200 relative overflow-auto">
+                        <!-- Dynamic items injected here -->
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- BOTTOM PANEL: GENERATED CSS CODE VIEWER -->
+            <div class="bg-slate-900/95 rounded-2xl border border-slate-800 p-4 space-y-3 shadow-xl">
+                <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-code text-indigo-400 text-xs"></i>
+                        <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Live Generated CSS Code
+                        </h3>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <button id="btnCopyCss"
+                            class="px-3 py-1.5 text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition flex items-center space-x-1.5 shadow-md shadow-indigo-600/30">
+                            <i class="fa-regular fa-copy"></i>
+                            <span>Copy CSS</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Code View Box -->
+                <pre
+                    class="bg-slate-950 p-4 rounded-xl text-xs font-mono text-indigo-300 overflow-x-auto border border-slate-800/80 leading-relaxed shadow-inner"><code id="codeCssDisplay">/* Container CSS Styles */
+.container {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 16px;
+}</code></pre>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- APP STATE ---
+        const state = {
+            // Container Layout
+            display: 'flex', // 'flex', 'grid', 'block'
+
+            // Flexbox Container Properties
+            flexDirection: 'row',
+            flexWrap: 'nowrap',
+
+            // Grid Container Properties
+            gridTemplateColumns: '1fr 1fr 1fr',
+            gridTemplateRows: 'auto',
+            justifyItems: 'stretch',
+
+            // Common Alignment Properties
+            justifyContent: 'flex-start',
+            alignItems: 'stretch',
+            alignContent: 'normal',
+            gap: 16,
+
+            // Canvas Display Overlay Options
+            showGridOverlay: true,
+            showAxisHelpers: true,
+
+            // Selected Child Item Index
+            selectedItemIndex: 0,
+
+            // Array of Child Items with custom properties
+            items: [
+                {id: 1, label: 'Item 1', flexGrow: 0, flexShrink: 1, order: 0, alignSelf: 'auto', gridColumn: '', gridRow: '', bg: 'from-blue-600 to-indigo-600'},
+                {id: 2, label: 'Item 2', flexGrow: 0, flexShrink: 1, order: 0, alignSelf: 'auto', gridColumn: '', gridRow: '', bg: 'from-indigo-600 to-purple-600'},
+                {id: 3, label: 'Item 3', flexGrow: 0, flexShrink: 1, order: 0, alignSelf: 'auto', gridColumn: '', gridRow: '', bg: 'from-purple-600 to-pink-600'},
+                {id: 4, label: 'Item 4', flexGrow: 0, flexShrink: 1, order: 0, alignSelf: 'auto', gridColumn: '', gridRow: '', bg: 'from-pink-600 to-rose-600'},
+                {id: 5, label: 'Item 5', flexGrow: 0, flexShrink: 1, order: 0, alignSelf: 'auto', gridColumn: '', gridRow: '', bg: 'from-amber-600 to-orange-600'}
+            ]
+        };
+
+        const itemGradients = [
+            'from-blue-600 to-indigo-600',
+            'from-indigo-600 to-purple-600',
+            'from-purple-600 to-pink-600',
+            'from-pink-600 to-rose-600',
+            'from-amber-600 to-orange-600',
+            'from-emerald-600 to-teal-600',
+            'from-teal-600 to-cyan-600',
+            'from-cyan-600 to-blue-600'
+        ];
+
+        // --- DOM REFERENCES ---
+        const elements = {
+            // Mode buttons
+            btnDisplayFlex: document.getElementById('btnDisplayFlex'),
+            btnDisplayGrid: document.getElementById('btnDisplayGrid'),
+            btnDisplayBlock: document.getElementById('btnDisplayBlock'),
+            headerModeBadge: document.getElementById('headerModeBadge'),
+
+            // Containers Controls
+            flexOnlyControls: document.getElementById('flexOnlyControls'),
+            gridOnlyControls: document.getElementById('gridOnlyControls'),
+            selectFlexDirection: document.getElementById('selectFlexDirection'),
+            selectFlexWrap: document.getElementById('selectFlexWrap'),
+            selectGridCols: document.getElementById('selectGridCols'),
+            customGridCols: document.getElementById('customGridCols'),
+            selectGridRows: document.getElementById('selectGridRows'),
+            selectJustifyItems: document.getElementById('selectJustifyItems'),
+
+            selectJustifyContent: document.getElementById('selectJustifyContent'),
+            selectAlignItems: document.getElementById('selectAlignItems'),
+            selectAlignContent: document.getElementById('selectAlignContent'),
+            labelJustifyContent: document.getElementById('labelJustifyContent'),
+            labelAlignItems: document.getElementById('labelAlignItems'),
+
+            sliderGap: document.getElementById('sliderGap'),
+            valGap: document.getElementById('valGap'),
+
+            // Selected Item Controls
+            selectedItemBadge: document.getElementById('selectedItemBadge'),
+            itemSelectionPills: document.getElementById('itemSelectionPills'),
+            sliderFlexGrow: document.getElementById('sliderFlexGrow'),
+            valFlexGrow: document.getElementById('valFlexGrow'),
+            sliderFlexShrink: document.getElementById('sliderFlexShrink'),
+            valFlexShrink: document.getElementById('valFlexShrink'),
+            sliderItemOrder: document.getElementById('sliderItemOrder'),
+            valItemOrder: document.getElementById('valItemOrder'),
+            selectAlignSelf: document.getElementById('selectAlignSelf'),
+            itemGridSpecificProps: document.getElementById('itemGridSpecificProps'),
+            inputGridColumn: document.getElementById('inputGridColumn'),
+            inputGridRow: document.getElementById('inputGridRow'),
+
+            // Tooltips
+            tooltipTitle: document.getElementById('tooltipTitle'),
+            tooltipBody: document.getElementById('tooltipBody'),
+
+            // Canvas Elements
+            playgroundContainer: document.getElementById('playgroundContainer'),
+            mainAxisTag: document.getElementById('mainAxisTag'),
+            crossAxisTag: document.getElementById('crossAxisTag'),
+            btnToggleGridOverlay: document.getElementById('btnToggleGridOverlay'),
+            btnToggleAxisOverlay: document.getElementById('btnToggleAxisOverlay'),
+            btnAddItem: document.getElementById('btnAddItem'),
+            btnRemoveItem: document.getElementById('btnRemoveItem'),
+            itemCountDisplay: document.getElementById('itemCountDisplay'),
+
+            // Preset & Copy
+            presetSelect: document.getElementById('presetSelect'),
+            btnResetAll: document.getElementById('btnResetAll'),
+            codeCssDisplay: document.getElementById('codeCssDisplay'),
+            btnCopyCss: document.getElementById('btnCopyCss'),
+
+            // Accordion
+            headingContainerProps: document.getElementById('headingContainerProps'),
+            contentContainerProps: document.getElementById('contentContainerProps'),
+            iconAccordionContainer: document.getElementById('iconAccordionContainer')
+        };
+
+        const modeTooltips = {
+            flex: {
+                title: "Flexbox Layout Model",
+                body: "Flexbox is designed for one-dimensional layouts. It distributes space dynamically along the main axis and manages alignment along the cross axis."
+            },
+            grid: {
+                title: "CSS Grid Layout Model",
+                body: "CSS Grid is a two-dimensional layout system. It allows precise control over row and column tracks simultaneously."
+            },
+            block: {
+                title: "Standard Block Flow",
+                body: "Items stack vertically in normal document flow. Width defaults to 100% of the parent element."
+            }
+        };
+
+        // --- PRESETS DEFINITIONS ---
+        const presetConfigurations = {
+            'flex-center': {
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 20,
+                itemCount: 1
+            },
+            'flex-navbar': {
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: 16,
+                itemCount: 4
+            },
+            'flex-cards': {
+                display: 'flex',
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                justifyContent: 'flex-start',
+                alignItems: 'stretch',
+                gap: 20,
+                itemCount: 6
+            },
+            'flex-sidebar': {
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'flex-start',
+                alignItems: 'stretch',
+                gap: 16,
+                itemCount: 2,
+                itemOverrides: [
+                    {index: 0, flexGrow: 0, flexShrink: 0},
+                    {index: 1, flexGrow: 1, flexShrink: 1}
+                ]
+            },
+            'grid-cards': {
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                gap: 16,
+                itemCount: 6
+            },
+            'grid-holy-grail': {
+                display: 'grid',
+                gridTemplateColumns: '150px 1fr 150px',
+                gridTemplateRows: 'auto 1fr auto',
+                gap: 12,
+                itemCount: 5,
+                itemOverrides: [
+                    {index: 0, gridColumn: '1 / -1'}, // Header
+                    {index: 1, gridColumn: '1 / 2'},  // Nav
+                    {index: 2, gridColumn: '2 / 3'},  // Main
+                    {index: 3, gridColumn: '3 / 4'},  // Aside
+                    {index: 4, gridColumn: '1 / -1'}  // Footer
+                ]
+            },
+            'grid-dashboard': {
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr 1fr',
+                gap: 16,
+                itemCount: 5,
+                itemOverrides: [
+                    {index: 0, gridColumn: 'span 2', gridRow: 'span 2'}
+                ]
+            },
+            'grid-gallery': {
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr 1fr',
+                gap: 16,
+                itemCount: 6
+            }
+        };
+
+        // --- RENDER & UPDATE CORE FUNCTIONS ---
+        function updateUI() {
+            // 1. Mode Button active states
+            const isFlex = state.display === 'flex';
+            const isGrid = state.display === 'grid';
+
+            elements.btnDisplayFlex.className = `mode-btn py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition border ${isFlex ? 'border-indigo-500 bg-indigo-600/30 text-white shadow-md' : 'border-slate-700 bg-slate-800/60 text-slate-400 hover:text-slate-200'}`;
+            elements.btnDisplayGrid.className = `mode-btn py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition border ${isGrid ? 'border-purple-500 bg-purple-600/30 text-white shadow-md' : 'border-slate-700 bg-slate-800/60 text-slate-400 hover:text-slate-200'}`;
+            elements.btnDisplayBlock.className = `mode-btn py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition border ${state.display === 'block' ? 'border-amber-500 bg-amber-600/30 text-white shadow-md' : 'border-slate-700 bg-slate-800/60 text-slate-400 hover:text-slate-200'}`;
+
+            elements.headerModeBadge.textContent = state.display.toUpperCase();
+
+            // 2. Panel visibility toggles based on display mode
+            if (isFlex) {
+                elements.flexOnlyControls.classList.remove('hidden');
+                elements.gridOnlyControls.classList.add('hidden');
+                elements.itemGridSpecificProps.classList.add('hidden');
+                elements.labelJustifyContent.textContent = "Main Axis Alignment";
+                elements.labelAlignItems.textContent = "Cross Axis Alignment";
+            } else if (isGrid) {
+                elements.flexOnlyControls.classList.add('hidden');
+                elements.gridOnlyControls.classList.remove('hidden');
+                elements.itemGridSpecificProps.classList.remove('hidden');
+                elements.labelJustifyContent.textContent = "Grid Content Distribution (Horiz)";
+                elements.labelAlignItems.textContent = "Grid Content Alignment (Vert)";
+            } else { // block
+                elements.flexOnlyControls.classList.add('hidden');
+                elements.gridOnlyControls.classList.add('hidden');
+                elements.itemGridSpecificProps.classList.add('hidden');
+            }
+
+            // 3. Update Educational Tooltip text
+            elements.tooltipTitle.textContent = modeTooltips[state.display].title;
+            elements.tooltipBody.textContent = modeTooltips[state.display].body;
+
+            // 4. Update Gap Display
+            elements.valGap.textContent = `${state.gap}px`;
+
+            // 5. Update Container Inline Styles
+            const pContainer = elements.playgroundContainer;
+            pContainer.style.display = state.display;
+            pContainer.style.gap = `${state.gap}px`;
+            pContainer.style.justifyContent = state.justifyContent;
+            pContainer.style.alignItems = state.alignItems;
+            pContainer.style.alignContent = state.alignContent;
+
+            if (isFlex) {
+                pContainer.style.flexDirection = state.flexDirection;
+                pContainer.style.flexWrap = state.flexWrap;
+                pContainer.style.gridTemplateColumns = '';
+                pContainer.style.gridTemplateRows = '';
+                pContainer.style.justifyItems = '';
+            } else if (isGrid) {
+                pContainer.style.gridTemplateColumns = state.gridTemplateColumns;
+                pContainer.style.gridTemplateRows = state.gridTemplateRows;
+                pContainer.style.justifyItems = state.justifyItems;
+                pContainer.style.flexDirection = '';
+                pContainer.style.flexWrap = '';
+            } else {
+                pContainer.style.gridTemplateColumns = '';
+                pContainer.style.gridTemplateRows = '';
+                pContainer.style.justifyItems = '';
+                pContainer.style.flexDirection = '';
+                pContainer.style.flexWrap = '';
+            }
+
+            // 6. Update Axis Helper Indicators
+            updateAxisHelpers();
+
+            // 7. Update Item Pills & Selected Item Form
+            renderItemPills();
+            updateSelectedItemControls();
+
+            // 8. Render Child Items inside playground container
+            renderContainerItems();
+
+            // 9. Generate Live CSS Output
+            generateCssCode();
+        }
+
+        function updateAxisHelpers() {
+            const isFlex = state.display === 'flex';
+            if (!isFlex || !state.showAxisHelpers) {
+                elements.mainAxisTag.style.display = 'none';
+                elements.crossAxisTag.style.display = 'none';
+                return;
+            }
+
+            elements.mainAxisTag.style.display = 'flex';
+            elements.crossAxisTag.style.display = 'flex';
+
+            const isColumn = state.flexDirection.includes('column');
+            const isReverse = state.flexDirection.includes('reverse');
+
+            if (!isColumn) {
+                // Row axis orientation
+                elements.mainAxisTag.style.top = '12px';
+                elements.mainAxisTag.style.left = '50%';
+                elements.mainAxisTag.style.transform = 'translateX(-50%)';
+                elements.mainAxisTag.innerHTML = `<i class="fa-solid fa-arrow-${isReverse ? 'left' : 'right'} mr-1.5 text-[10px]"></i> Main Axis (row)`;
+
+                elements.crossAxisTag.style.top = '50%';
+                elements.crossAxisTag.style.left = '12px';
+                elements.crossAxisTag.style.transform = 'translateY(-50%) rotate(-90deg)';
+                elements.crossAxisTag.innerHTML = `<i class="fa-solid fa-arrow-down mr-1.5 text-[10px]"></i> Cross Axis`;
+            } else {
+                // Column axis orientation
+                elements.mainAxisTag.style.top = '50%';
+                elements.mainAxisTag.style.left = '12px';
+                elements.mainAxisTag.style.transform = 'translateY(-50%) rotate(-90deg)';
+                elements.mainAxisTag.innerHTML = `<i class="fa-solid fa-arrow-${isReverse ? 'up' : 'down'} mr-1.5 text-[10px]"></i> Main Axis (column)`;
+
+                elements.crossAxisTag.style.top = '12px';
+                elements.crossAxisTag.style.left = '50%';
+                elements.crossAxisTag.style.transform = 'translateX(-50%)';
+                elements.crossAxisTag.innerHTML = `<i class="fa-solid fa-arrow-right mr-1.5 text-[10px]"></i> Cross Axis`;
+            }
+        }
+
+        function renderItemPills() {
+            elements.itemSelectionPills.innerHTML = '';
+            elements.itemCountDisplay.textContent = `${state.items.length} items`;
+
+            state.items.forEach((item, index) => {
+                const isSelected = index === state.selectedItemIndex;
+                const pill = document.createElement('button');
+                pill.className = `px-2.5 py-1 rounded-lg text-xs font-mono transition flex-shrink-0 border ${isSelected ? 'bg-indigo-600 border-indigo-400 text-white font-bold shadow' : 'bg-slate-950/80 border-slate-800 text-slate-400 hover:text-slate-200'}`;
+                pill.textContent = `#${item.id}`;
+                pill.addEventListener('click', () => {
+                    state.selectedItemIndex = index;
+                    updateUI();
+                });
+                elements.itemSelectionPills.appendChild(pill);
+            });
+        }
+
+        function updateSelectedItemControls() {
+            if (state.selectedItemIndex >= state.items.length) {
+                state.selectedItemIndex = Math.max(0, state.items.length - 1);
+            }
+
+            const current = state.items[state.selectedItemIndex];
+            if (!current) return;
+
+            elements.selectedItemBadge.textContent = `Item #${current.id} Selected`;
+
+            elements.sliderFlexGrow.value = current.flexGrow;
+            elements.valFlexGrow.textContent = current.flexGrow;
+
+            elements.sliderFlexShrink.value = current.flexShrink;
+            elements.valFlexShrink.textContent = current.flexShrink;
+
+            elements.sliderItemOrder.value = current.order;
+            elements.valItemOrder.textContent = current.order;
+
+            elements.selectAlignSelf.value = current.alignSelf;
+            elements.inputGridColumn.value = current.gridColumn || '';
+            elements.inputGridRow.value = current.gridRow || '';
+        }
+
+        function renderContainerItems() {
+            elements.playgroundContainer.innerHTML = '';
+
+            state.items.forEach((item, index) => {
+                const isSelected = index === state.selectedItemIndex;
+
+                const box = document.createElement('div');
+                box.className = `playground-item bg-gradient-to-br ${item.bg} p-4 rounded-xl border border-white/20 text-white shadow-lg flex flex-col justify-between cursor-pointer relative overflow-hidden min-w-[70px] min-h-[70px] ${isSelected ? 'item-selected' : 'hover:scale-[1.02]'}`;
+
+                // Apply dynamic item styles
+                box.style.order = item.order;
+                box.style.alignSelf = item.alignSelf;
+
+                if (state.display === 'flex') {
+                    box.style.flexGrow = item.flexGrow;
+                    box.style.flexShrink = item.flexShrink;
+                } else if (state.display === 'grid') {
+                    if (item.gridColumn) box.style.gridColumn = item.gridColumn;
+                    if (item.gridRow) box.style.gridRow = item.gridRow;
+                }
+
+                box.innerHTML = `
+                    <div class="flex items-center justify-between font-mono text-xs font-bold mb-2">
+                        <span>#${item.id}</span>
+                        ${item.order !== 0 ? `<span class="bg-black/40 text-[10px] px-1.5 py-0.5 rounded">ord: ${item.order}</span>` : ''}
+                    </div>
+                    <div class="text-[10px] font-mono text-white/80 space-y-0.5">
+                        ${state.display === 'flex' && (item.flexGrow > 0 || item.flexShrink !== 1) ? `<div>grow:${item.flexGrow} shrink:${item.flexShrink}</div>` : ''}
+                        ${state.display === 'grid' && item.gridColumn ? `<div>col: ${item.gridColumn}</div>` : ''}
+                    </div>
+                `;
+
+                box.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    state.selectedItemIndex = index;
+                    updateUI();
+                });
+
+                elements.playgroundContainer.appendChild(box);
+            });
+        }
+
+        function generateCssCode() {
+            let css = `/* Container Styles */\n.container {\n`;
+            css += `  display: ${state.display};\n`;
+
+            if (state.display === 'flex') {
+                css += `  flex-direction: ${state.flexDirection};\n`;
+                if (state.flexWrap !== 'nowrap') css += `  flex-wrap: ${state.flexWrap};\n`;
+            } else if (state.display === 'grid') {
+                css += `  grid-template-columns: ${state.gridTemplateColumns};\n`;
+                if (state.gridTemplateRows !== 'auto') css += `  grid-template-rows: ${state.gridTemplateRows};\n`;
+                if (state.justifyItems !== 'stretch') css += `  justify-items: ${state.justifyItems};\n`;
+            }
+
+            if (state.justifyContent !== 'flex-start') css += `  justify-content: ${state.justifyContent};\n`;
+            if (state.alignItems !== 'stretch') css += `  align-items: ${state.alignItems};\n`;
+            if (state.alignContent !== 'normal') css += `  align-content: ${state.alignContent};\n`;
+            if (state.gap !== 0) css += `  gap: ${state.gap}px;\n`;
+            css += `}\n`;
+
+            // Append specific child rules if customized
+            state.items.forEach((item, i) => {
+                const hasCustomFlex = state.display === 'flex' && (item.flexGrow !== 0 || item.flexShrink !== 1);
+                const hasCustomGrid = state.display === 'grid' && (item.gridColumn || item.gridRow);
+                const hasCustomSelf = item.alignSelf !== 'auto';
+                const hasCustomOrder = item.order !== 0;
+
+                if (hasCustomFlex || hasCustomGrid || hasCustomSelf || hasCustomOrder) {
+                    css += `\n/* Item ${item.id} Styles */\n.item-${item.id} {\n`;
+                    if (hasCustomFlex) css += `  flex: ${item.flexGrow} ${item.flexShrink} auto;\n`;
+                    if (hasCustomOrder) css += `  order: ${item.order};\n`;
+                    if (hasCustomSelf) css += `  align-self: ${item.alignSelf};\n`;
+                    if (state.display === 'grid' && item.gridColumn) css += `  grid-column: ${item.gridColumn};\n`;
+                    if (state.display === 'grid' && item.gridRow) css += `  grid-row: ${item.gridRow};\n`;
+                    css += `}\n`;
+                }
+            });
+
+            elements.codeCssDisplay.textContent = css;
+        }
+
+        function attachEventListeners() {
+            // Display mode toggles
+            elements.btnDisplayFlex.addEventListener('click', () => {state.display = 'flex'; updateUI();});
+            elements.btnDisplayGrid.addEventListener('click', () => {state.display = 'grid'; updateUI();});
+            elements.btnDisplayBlock.addEventListener('click', () => {state.display = 'block'; updateUI();});
+
+            // Flex properties
+            elements.selectFlexDirection.addEventListener('change', (e) => {state.flexDirection = e.target.value; updateUI();});
+            elements.selectFlexWrap.addEventListener('change', (e) => {state.flexWrap = e.target.value; updateUI();});
+
+            // Grid properties
+            elements.selectGridCols.addEventListener('change', (e) => {
+                if (e.target.value === 'custom') {
+                    elements.customGridCols.classList.remove('hidden');
+                    state.gridTemplateColumns = elements.customGridCols.value || '1fr 1fr';
+                } else {
+                    elements.customGridCols.classList.add('hidden');
+                    state.gridTemplateColumns = e.target.value;
+                }
+                updateUI();
+            });
+
+            elements.customGridCols.addEventListener('input', (e) => {
+                state.gridTemplateColumns = e.target.value || '1fr';
+                updateUI();
+            });
+
+            elements.selectGridRows.addEventListener('change', (e) => {state.gridTemplateRows = e.target.value; updateUI();});
+            elements.selectJustifyItems.addEventListener('change', (e) => {state.justifyItems = e.target.value; updateUI();});
+
+            // Alignments & Gap
+            elements.selectJustifyContent.addEventListener('change', (e) => {state.justifyContent = e.target.value; updateUI();});
+            elements.selectAlignItems.addEventListener('change', (e) => {state.alignItems = e.target.value; updateUI();});
+            elements.selectAlignContent.addEventListener('change', (e) => {state.alignContent = e.target.value; updateUI();});
+
+            elements.sliderGap.addEventListener('input', (e) => {
+                state.gap = parseInt(e.target.value);
+                updateUI();
+            });
+
+            // Selected Item Sliders
+            elements.sliderFlexGrow.addEventListener('input', (e) => {
+                if (state.items[state.selectedItemIndex]) {
+                    state.items[state.selectedItemIndex].flexGrow = parseInt(e.target.value);
+                    updateUI();
+                }
+            });
+
+            elements.sliderFlexShrink.addEventListener('input', (e) => {
+                if (state.items[state.selectedItemIndex]) {
+                    state.items[state.selectedItemIndex].flexShrink = parseInt(e.target.value);
+                    updateUI();
+                }
+            });
+
+            elements.sliderItemOrder.addEventListener('input', (e) => {
+                if (state.items[state.selectedItemIndex]) {
+                    state.items[state.selectedItemIndex].order = parseInt(e.target.value);
+                    updateUI();
+                }
+            });
+
+            elements.selectAlignSelf.addEventListener('change', (e) => {
+                if (state.items[state.selectedItemIndex]) {
+                    state.items[state.selectedItemIndex].alignSelf = e.target.value;
+                    updateUI();
+                }
+            });
+
+            elements.inputGridColumn.addEventListener('input', (e) => {
+                if (state.items[state.selectedItemIndex]) {
+                    state.items[state.selectedItemIndex].gridColumn = e.target.value;
+                    updateUI();
+                }
+            });
+
+            elements.inputGridRow.addEventListener('input', (e) => {
+                if (state.items[state.selectedItemIndex]) {
+                    state.items[state.selectedItemIndex].gridRow = e.target.value;
+                    updateUI();
+                }
+            });
+
+            // Item count controls
+            elements.btnAddItem.addEventListener('click', () => {
+                const nextId = state.items.length > 0 ? Math.max(...state.items.map(i => i.id)) + 1 : 1;
+                const nextBg = itemGradients[(nextId - 1) % itemGradients.length];
+                state.items.push({
+                    id: nextId,
+                    label: `Item ${nextId}`,
+                    flexGrow: 0,
+                    flexShrink: 1,
+                    order: 0,
+                    alignSelf: 'auto',
+                    gridColumn: '',
+                    gridRow: '',
+                    bg: nextBg
+                });
+                state.selectedItemIndex = state.items.length - 1;
+                updateUI();
+            });
+
+            elements.btnRemoveItem.addEventListener('click', () => {
+                if (state.items.length > 1) {
+                    state.items.pop();
+                    if (state.selectedItemIndex >= state.items.length) {
+                        state.selectedItemIndex = state.items.length - 1;
+                    }
+                    updateUI();
+                }
+            });
+
+            // Canvas Visual Overlay Toggles
+            elements.btnToggleGridOverlay.addEventListener('click', () => {
+                state.showGridOverlay = !state.showGridOverlay;
+                if (state.showGridOverlay) {
+                    elements.playgroundContainer.classList.add('grid-overlay-active');
+                    elements.btnToggleGridOverlay.classList.replace('text-slate-500', 'text-slate-300');
+                } else {
+                    elements.playgroundContainer.classList.remove('grid-overlay-active');
+                    elements.btnToggleGridOverlay.classList.replace('text-slate-300', 'text-slate-500');
+                }
+            });
+
+            elements.btnToggleAxisOverlay.addEventListener('click', () => {
+                state.showAxisHelpers = !state.showAxisHelpers;
+                updateAxisHelpers();
+            });
+
+            // Presets Dropdown
+            elements.presetSelect.addEventListener('change', (e) => {
+                const presetKey = e.target.value;
+                const config = presetConfigurations[presetKey];
+                if (!config) return;
+
+                state.display = config.display;
+                if (config.flexDirection) state.flexDirection = config.flexDirection;
+                if (config.flexWrap) state.flexWrap = config.flexWrap;
+                if (config.gridTemplateColumns) state.gridTemplateColumns = config.gridTemplateColumns;
+                if (config.gridTemplateRows) state.gridTemplateRows = config.gridTemplateRows;
+                if (config.justifyContent) state.justifyContent = config.justifyContent;
+                if (config.alignItems) state.alignItems = config.alignItems;
+                if (config.gap !== undefined) state.gap = config.gap;
+
+                // Adjust items count
+                if (config.itemCount) {
+                    state.items = [];
+                    for (let i = 1; i <= config.itemCount; i++) {
+                        state.items.push({
+                            id: i,
+                            label: `Item ${i}`,
+                            flexGrow: 0,
+                            flexShrink: 1,
+                            order: 0,
+                            alignSelf: 'auto',
+                            gridColumn: '',
+                            gridRow: '',
+                            bg: itemGradients[(i - 1) % itemGradients.length]
+                        });
+                    }
+                }
+
+                // Apply specific item overrides
+                if (config.itemOverrides) {
+                    config.itemOverrides.forEach(override => {
+                        if (state.items[override.index]) {
+                            Object.assign(state.items[override.index], override);
+                        }
+                    });
+                }
+
+                state.selectedItemIndex = 0;
+                updateUI();
+            });
+
+            // Copy CSS Button
+            elements.btnCopyCss.addEventListener('click', () => {
+                const cssText = elements.codeCssDisplay.textContent;
+                const textarea = document.createElement('textarea');
+                textarea.value = cssText;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    const origHtml = elements.btnCopyCss.innerHTML;
+                    elements.btnCopyCss.innerHTML = `<i class="fa-solid fa-check"></i><span>Copied!</span>`;
+                    setTimeout(() => {elements.btnCopyCss.innerHTML = origHtml;}, 2000);
+                } catch (err) {
+                    console.error('Copy failed', err);
+                } finally {
+                    document.body.removeChild(textarea);
+                }
+            });
+
+            // Reset Button
+            elements.btnResetAll.addEventListener('click', () => {
+                state.display = 'flex';
+                state.flexDirection = 'row';
+                state.flexWrap = 'nowrap';
+                state.gridTemplateColumns = '1fr 1fr 1fr';
+                state.gridTemplateRows = 'auto';
+                state.justifyItems = 'stretch';
+                state.justifyContent = 'flex-start';
+                state.alignItems = 'stretch';
+                state.alignContent = 'normal';
+                state.gap = 16;
+                state.selectedItemIndex = 0;
+
+                state.items = [
+                    {id: 1, label: 'Item 1', flexGrow: 0, flexShrink: 1, order: 0, alignSelf: 'auto', gridColumn: '', gridRow: '', bg: 'from-blue-600 to-indigo-600'},
+                    {id: 2, label: 'Item 2', flexGrow: 0, flexShrink: 1, order: 0, alignSelf: 'auto', gridColumn: '', gridRow: '', bg: 'from-indigo-600 to-purple-600'},
+                    {id: 3, label: 'Item 3', flexGrow: 0, flexShrink: 1, order: 0, alignSelf: 'auto', gridColumn: '', gridRow: '', bg: 'from-purple-600 to-pink-600'},
+                    {id: 4, label: 'Item 4', flexGrow: 0, flexShrink: 1, order: 0, alignSelf: 'auto', gridColumn: '', gridRow: '', bg: 'from-pink-600 to-rose-600'},
+                    {id: 5, label: 'Item 5', flexGrow: 0, flexShrink: 1, order: 0, alignSelf: 'auto', gridColumn: '', gridRow: '', bg: 'from-amber-600 to-orange-600'}
+                ];
+
+                elements.presetSelect.selectedIndex = 0;
+                updateUI();
+            });
+
+            // Accordion Collapse
+            elements.headingContainerProps.addEventListener('click', () => {
+                elements.contentContainerProps.classList.toggle('collapsed');
+                elements.iconAccordionContainer.classList.toggle('rotate-180');
+            });
+        }
+
+        // Initialize application on startup
+        window.onload = function () {
+            attachEventListeners();
+            updateUI();
+        };
+    </script>
+</body>
+
+</html>
