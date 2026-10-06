@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Box Model & Display Visualizer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Fira Code -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(71, 85, 105, 1);
+        }
+
+        /* Distinct Color Coding for Box Model Layers */
+        .margin-layer {
+            background-color: rgba(251, 146, 60, 0.25);
+            /* Orange/Peach */
+            border: 1.5px dashed rgba(249, 115, 22, 0.6);
+        }
+
+        .border-layer {
+            background-color: rgba(234, 179, 8, 0.25);
+            /* Gold */
+            border-color: #f59e0b;
+        }
+
+        .padding-layer {
+            background-color: rgba(34, 197, 94, 0.25);
+            /* Green */
+        }
+
+        .content-layer {
+            background-color: rgba(59, 130, 246, 0.35);
+            /* Blue */
+            border: 1px dashed rgba(96, 165, 250, 0.6);
+        }
+
+        /* Flow Area Canvas Grid */
+        .canvas-grid {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 16px 16px;
+        }
+
+        .smooth-box-transition {
+            transition: all 0.12s ease-out;
+        }
+
+        /* Custom range slider styling */
+        input[type=range] {
+            height: 6px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- HEADER BAR -->
+    <header
+        class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 px-4 py-3 flex items-center justify-between shadow-lg">
+        <div class="flex items-center space-x-3">
+            <div
+                class="bg-gradient-to-tr from-indigo-500 via-purple-500 to-amber-500 text-white p-2 rounded-xl shadow-md">
+                <i class="fa-solid fa-cube text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight tracking-wide text-white flex items-center space-x-2">
+                    <span>CSS Box Model Visualizer</span>
+                    <span id="displayBadge"
+                        class="text-[10px] px-2 py-0.5 rounded-full font-mono bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">DISPLAY:
+                        BLOCK</span>
+                </h1>
+                <p class="text-xs text-slate-400">Master individual 4-side box layers & document flow behavior</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <button id="btnReset"
+                class="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition flex items-center space-x-1.5 border border-slate-700">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span class="hidden sm:inline">Reset Defaults</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN INTERFACE LAYOUT -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+
+        <!-- LEFT CONTROL PANEL WITH TABS -->
+        <aside
+            class="lg:col-span-5 xl:col-span-4 bg-slate-900/90 border-r border-slate-800 p-4 space-y-4 overflow-y-auto max-h-screen lg:max-h-[calc(100vh-61px)]">
+
+            <!-- DISPLAY & BOX-SIZING MODE -->
+            <div class="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 space-y-3">
+                <h2
+                    class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span><i class="fa-solid fa-sliders text-indigo-400 mr-1.5"></i> Display & Sizing Model</span>
+                </h2>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Display Dropdown -->
+                    <div>
+                        <label for="selectDisplay" class="block text-xs font-mono text-slate-400 mb-1">display</label>
+                        <select id="selectDisplay"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="block" selected>block</option>
+                            <option value="inline-block">inline-block</option>
+                            <option value="inline">inline</option>
+                        </select>
+                    </div>
+
+                    <!-- Box Sizing Dropdown -->
+                    <div>
+                        <label for="selectBoxSizing"
+                            class="block text-xs font-mono text-slate-400 mb-1">box-sizing</label>
+                        <select id="selectBoxSizing"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="content-box" selected>content-box</option>
+                            <option value="border-box">border-box</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NAVIGATION TABS FOR SLIDERS -->
+            <div class="flex rounded-xl bg-slate-950 p-1 border border-slate-800 text-xs font-medium text-slate-400">
+                <button id="tabBtnMain"
+                    class="tab-btn flex-1 py-1.5 rounded-lg text-white bg-indigo-600 transition shadow">Base &
+                    Dim</button>
+                <button id="tabBtnMargin"
+                    class="tab-btn flex-1 py-1.5 rounded-lg hover:text-slate-200 transition">Margin (4)</button>
+                <button id="tabBtnPadding"
+                    class="tab-btn flex-1 py-1.5 rounded-lg hover:text-slate-200 transition">Padding (4)</button>
+                <button id="tabBtnBorder"
+                    class="tab-btn flex-1 py-1.5 rounded-lg hover:text-slate-200 transition">Border (4)</button>
+            </div>
+
+            <!-- TAB CONTENT 1: BASE DIMENSIONS & RADIUS -->
+            <div id="tabContentMain"
+                class="tab-panel space-y-3.5 bg-slate-950/80 p-3.5 rounded-xl border border-slate-800">
+                <h3
+                    class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center border-b border-slate-800 pb-2">
+                    <i class="fa-solid fa-arrows-left-right-to-line mr-1.5"></i> Width & Height Dimensions
+                </h3>
+
+                <!-- Width Slider -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-blue-400">width:</span>
+                        <span id="valWidth" class="font-mono text-blue-300">200px</span>
+                    </div>
+                    <input type="range" id="sliderWidth" min="60" max="380" value="200"
+                        class="w-full accent-blue-500 bg-slate-800 appearance-none cursor-pointer">
+                </div>
+
+                <!-- Height Slider -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-blue-400">height:</span>
+                        <span id="valHeight" class="font-mono text-blue-300">100px</span>
+                    </div>
+                    <input type="range" id="sliderHeight" min="40" max="260" value="100"
+                        class="w-full accent-blue-500 bg-slate-800 appearance-none cursor-pointer">
+                </div>
+
+                <!-- Border Radius Slider -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-purple-400">border-radius:</span>
+                        <span id="valRadius" class="font-mono text-purple-300">12px</span>
+                    </div>
+                    <input type="range" id="sliderRadius" min="0" max="50" value="12"
+                        class="w-full accent-purple-500 bg-slate-800 appearance-none cursor-pointer">
+                </div>
+            </div>
+
+            <!-- TAB CONTENT 2: INDIVIDUAL MARGIN SIDES -->
+            <div id="tabContentMargin"
+                class="tab-panel hidden space-y-3.5 bg-slate-950/80 p-3.5 rounded-xl border border-slate-800">
+                <h3
+                    class="text-xs font-bold text-orange-400 uppercase tracking-wider flex items-center border-b border-slate-800 pb-2">
+                    <i class="fa-solid fa-expand mr-1.5"></i> Margin (Top, Right, Bottom, Left)
+                </h3>
+
+                <!-- Margin Top -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-orange-400">margin-top:</span>
+                        <span id="valMarginTop" class="font-mono text-orange-300">20px</span>
+                    </div>
+                    <input type="range" id="sliderMarginTop" min="0" max="60" value="20"
+                        class="w-full accent-orange-500 bg-slate-800 appearance-none cursor-pointer">
+                </div>
+
+                <!-- Margin Right -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-orange-400">margin-right:</span>
+                        <span id="valMarginRight" class="font-mono text-orange-300">20px</span>
+                    </div>
+                    <input type="range" id="sliderMarginRight" min="0" max="60" value="20"
+                        class="w-full accent-orange-500 bg-slate-800 appearance-none cursor-pointer">
+                </div>
+
+                <!-- Margin Bottom -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-orange-400">margin-bottom:</span>
+                        <span id="valMarginBottom" class="font-mono text-orange-300">20px</span>
+                    </div>
+                    <input type="range" id="sliderMarginBottom" min="0" max="60" value="20"
+                        class="w-full accent-orange-500 bg-slate-800 appearance-none cursor-pointer">
+                </div>
+
+                <!-- Margin Left -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-orange-400">margin-left:</span>
+                        <span id="valMarginLeft" class="font-mono text-orange-300">20px</span>
+                    </div>
+                    <input type="range" id="sliderMarginLeft" min="0" max="60" value="20"
+                        class="w-full accent-orange-500 bg-slate-800 appearance-none cursor-pointer">
+                </div>
+            </div>
+
+            <!-- TAB CONTENT 3: INDIVIDUAL PADDING SIDES -->
+            <div id="tabContentPadding"
+                class="tab-panel hidden space-y-3.5 bg-slate-950/80 p-3.5 rounded-xl border border-slate-800">
+                <h3
+                    class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center border-b border-slate-800 pb-2">
+                    <i class="fa-solid fa-compress mr-1.5"></i> Padding (Top, Right, Bottom, Left)
+                </h3>
+
+                <!-- Padding Top -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-emerald-400">padding-top:</span>
+                        <span id="valPaddingTop" class="font-mono text-emerald-300">16px</span>
+                    </div>
+                    <input type="range" id="sliderPaddingTop" min="0" max="60" value="16"
+                        class="w-full accent-emerald-500 bg-slate-800 appearance-none cursor-pointer">
+                </div>
+
+                <!-- Padding Right -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-emerald-400">padding-right:</span>
+                        <span id="valPaddingRight" class="font-mono text-emerald-300">16px</span>
+                    </div>
+                    <input type="range" id="sliderPaddingRight" min="0" max="60" value="16"
+                        class="w-full accent-emerald-500 bg-slate-800 appearance-none cursor-pointer">
+                </div>
+
+                <!-- Padding Bottom -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-emerald-400">padding-bottom:</span>
+                        <span id="valPaddingBottom" class="font-mono text-emerald-300">16px</span>
+                    </div>
+                    <input type="range" id="sliderPaddingBottom" min="0" max="60" value="16"
+                        class="w-full accent-emerald-500 bg-slate-800 appearance-none cursor-pointer">
+                </div>
+
+                <!-- Padding Left -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-emerald-400">padding-left:</span>
+                        <span id="valPaddingLeft" class="font-mono text-emerald-300">16px</span>
+                    </div>
+                    <input type="range" id="sliderPaddingLeft" min="0" max="60" value="16"
+                        class="w-full accent-emerald-500 bg-slate-800 appearance-none cursor-pointer">
+                </div>
+            </div>
+
+            <!-- TAB CONTENT 4: INDIVIDUAL BORDER SIDES -->
+            <div id="tabContentBorder"
+                class="tab-panel hidden space-y-3.5 bg-slate-950/80 p-3.5 rounded-xl border border-slate-800">
+                <h3
+                    class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center border-b border-slate-800 pb-2">
+                    <i class="fa-solid fa-border-all mr-1.5"></i> Border Width (Top, Right, Bottom, Left)
+                </h3>
+
+                <!-- Border Top Width -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-amber-400">border-top-width:</span>
+                        <span id="valBorderTop" class="font-mono text-amber-300">6px</span>
+                    </div>
+                    <input type="range" id="sliderBorderTop" min="0" max="30" value="6"
+                        class="w-full accent-amber-500 bg-slate-800 appearance-none cursor-pointer">
+                </div>
+
+                <!-- Border Right Width -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-amber-400">border-right-width:</span>
+                        <span id="valBorderRight" class="font-mono text-amber-300">6px</span>
+                    </div>
+                    <input type="range" id="sliderBorderRight" min="0" max="30" value="6"
+                        class="w-full accent-amber-500 bg-slate-800 appearance-none cursor-pointer">
+                </div>
+
+                <!-- Border Bottom Width -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-amber-400">border-bottom-width:</span>
+                        <span id="valBorderBottom" class="font-mono text-amber-300">6px</span>
+                    </div>
+                    <input type="range" id="sliderBorderBottom" min="0" max="30" value="6"
+                        class="w-full accent-amber-500 bg-slate-800 appearance-none cursor-pointer">
+                </div>
+
+                <!-- Border Left Width -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-amber-400">border-left-width:</span>
+                        <span id="valBorderLeft" class="font-mono text-amber-300">6px</span>
+                    </div>
+                    <input type="range" id="sliderBorderLeft" min="0" max="30" value="6"
+                        class="w-full accent-amber-500 bg-slate-800 appearance-none cursor-pointer">
+                </div>
+            </div>
+
+            <!-- EDUCATIONAL NOTES / WARNING BOX -->
+            <div id="educationalNote"
+                class="bg-indigo-950/40 border border-indigo-500/30 p-3.5 rounded-xl text-xs space-y-1.5">
+                <div class="flex items-center space-x-2 text-indigo-300 font-semibold">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span id="noteTitle">Display Mode: block</span>
+                </div>
+                <p id="noteBody" class="text-slate-300 leading-relaxed text-[11px]">
+                    Block elements stack vertically, take full container width by default, and fully respect all width,
+                    height, 4-side margins, and 4-side padding properties.
+                </p>
+            </div>
+
+        </aside>
+
+        <!-- RIGHT PREVIEW & CANVAS SECTION -->
+        <section
+            class="lg:col-span-7 xl:col-span-8 bg-slate-950 p-4 md:p-6 flex flex-col justify-between space-y-5 overflow-y-auto">
+
+            <!-- CANVAS CONTAINER -->
+            <div
+                class="bg-slate-900 border-2 border-slate-800 rounded-2xl p-4 md:p-6 shadow-2xl relative flex flex-col min-h-[380px]">
+
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="flex h-2.5 w-2.5 relative">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                        <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Document Flow Preview
+                            Canvas</h2>
+                    </div>
+
+                    <!-- Layer Legend -->
+                    <div class="hidden sm:flex items-center space-x-3 text-[11px] font-mono">
+                        <span class="flex items-center space-x-1">
+                            <span class="w-3 h-3 rounded bg-orange-500/40 border border-orange-500"></span>
+                            <span class="text-slate-400">Margin</span>
+                        </span>
+                        <span class="flex items-center space-x-1">
+                            <span class="w-3 h-3 rounded bg-amber-500/40 border border-amber-500"></span>
+                            <span class="text-slate-400">Border</span>
+                        </span>
+                        <span class="flex items-center space-x-1">
+                            <span class="w-3 h-3 rounded bg-emerald-500/40 border border-emerald-500"></span>
+                            <span class="text-slate-400">Padding</span>
+                        </span>
+                        <span class="flex items-center space-x-1">
+                            <span class="w-3 h-3 rounded bg-blue-500/40 border border-blue-500"></span>
+                            <span class="text-slate-400">Content</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- LIVE INTERACTIVE FLOW CANVAS -->
+                <div id="flowCanvas"
+                    class="canvas-grid flex-1 border border-slate-800 rounded-xl p-4 relative overflow-auto bg-slate-950/50 leading-relaxed text-slate-300 font-sans text-sm min-h-[220px]">
+
+                    <span class="text-slate-600 font-mono text-[11px] select-none block mb-2">&lt;!-- Normal Document
+                        Flow Container --&gt;</span>
+
+                    <!-- BOX 1 TARGET ELEMENT WITH NESTED COLOR-CODED LAYERS -->
+                    <div id="box1MarginLayer"
+                        class="margin-layer smooth-box-transition inline-block relative rounded-lg">
+                        <div id="box1BorderLayer"
+                            class="border-layer smooth-box-transition h-full w-full rounded-md border-solid">
+                            <div id="box1PaddingLayer"
+                                class="padding-layer smooth-box-transition h-full w-full rounded">
+                                <div id="box1ContentLayer"
+                                    class="content-layer smooth-box-transition h-full w-full rounded flex flex-col items-center justify-center text-center p-2 text-white font-mono shadow-md">
+                                    <span class="font-bold text-sm tracking-wide text-blue-200">Box 1</span>
+                                    <span id="box1InnerDim" class="text-[10px] text-blue-300/80 font-mono">200px ×
+                                        100px</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BOX 2 SIBLING ELEMENT FOR FLOW INTERACTION -->
+                    <div id="box2Sibling"
+                        class="bg-slate-800 border border-slate-700 text-slate-300 font-mono p-3 rounded-xl inline-block shadow-md border-dashed">
+                        <div class="font-bold text-xs text-slate-200">Box 2</div>
+                        <div class="text-[10px] text-slate-400">Sibling Element</div>
+                    </div>
+
+                    <p class="text-xs text-slate-500 mt-4 font-sans italic">
+                        Text content following Box 1 and Box 2 in normal document flow to demonstrate block breaking vs.
+                        inline text wrapping behavior.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- BOTTOM PANEL: COMPUTED DIAGRAM & LIVE CSS OUTPUT -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+
+                <!-- COMPUTED 4-SIDE BOX MODEL BREAKDOWN DIAGRAM -->
+                <div class="md:col-span-6 bg-slate-900/90 rounded-2xl border border-slate-800 p-4 space-y-3">
+                    <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center space-x-2">
+                        <i class="fa-solid fa-calculator text-emerald-400"></i>
+                        <span>Computed 4-Side Breakdown</span>
+                    </h3>
+
+                    <!-- 2D Box Model Nested Schematic -->
+                    <div
+                        class="bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-[11px] text-center space-y-1">
+                        <!-- Margin Outer Ring -->
+                        <div class="bg-orange-950/30 border border-orange-500/40 p-2 rounded-lg text-orange-300">
+                            <div class="text-[10px] text-orange-400/90 font-bold mb-1">
+                                margin: <span id="diagMarginT">20</span>px top | <span id="diagMarginR">20</span>px
+                                right | <span id="diagMarginB">20</span>px bottom | <span id="diagMarginL">20</span>px
+                                left
+                            </div>
+
+                            <!-- Border Ring -->
+                            <div class="bg-amber-950/30 border border-amber-500/40 p-2 rounded-md text-amber-300 my-1">
+                                <div class="text-[10px] text-amber-400/90 font-bold mb-1">
+                                    border: <span id="diagBorderT">6</span>px | <span id="diagBorderR">6</span>px |
+                                    <span id="diagBorderB">6</span>px | <span id="diagBorderL">6</span>px
+                                </div>
+
+                                <!-- Padding Ring -->
+                                <div
+                                    class="bg-emerald-950/30 border border-emerald-500/40 p-2 rounded text-emerald-300 my-1">
+                                    <div class="text-[10px] text-emerald-400/90 font-bold mb-1">
+                                        padding: <span id="diagPaddingT">16</span>px | <span
+                                            id="diagPaddingR">16</span>px | <span id="diagPaddingB">16</span>px | <span
+                                            id="diagPaddingL">16</span>px
+                                    </div>
+
+                                    <!-- Content Core -->
+                                    <div
+                                        class="bg-blue-900/50 border border-blue-400/60 p-2 rounded text-blue-200 font-bold my-1">
+                                        <span>content core: </span>
+                                        <span id="calcContentVal">200 × 100</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="pt-2 text-slate-400 flex justify-between items-center text-xs border-t border-slate-800/80 mt-2">
+                            <span>Total Space Rendered:</span>
+                            <span id="calcTotalVal" class="text-indigo-300 font-bold font-mono">284px × 184px</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LIVE GENERATED CSS CODE -->
+                <div
+                    class="md:col-span-6 bg-slate-900/90 rounded-2xl border border-slate-800 p-4 space-y-3 flex flex-col justify-between">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-code text-indigo-400 text-xs"></i>
+                            <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Generated CSS Code
+                            </h3>
+                        </div>
+                        <button id="btnCopyCss"
+                            class="px-2.5 py-1 text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition flex items-center space-x-1 shadow-sm">
+                            <i class="fa-regular fa-copy text-[10px]"></i>
+                            <span>Copy CSS</span>
+                        </button>
+                    </div>
+
+                    <pre
+                        class="bg-slate-950 p-3 rounded-xl text-xs font-mono text-indigo-300 overflow-x-auto border border-slate-800 flex-1 leading-relaxed"><code id="codeCssDisplay">/* Target Box 1 CSS */
+.box-1 {
+  display: block;
+  box-sizing: content-box;
+  width: 200px;
+  height: 100px;
+  ...
+}</code></pre>
+                </div>
+
+            </div>
+
+        </section>
+    </main>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- APP STATE FOR ALL 12 INDIVIDUAL SIDES & OPTIONS ---
+        const state = {
+            display: 'block',
+            boxSizing: 'content-box',
+            width: 200,
+            height: 100,
+            borderRadius: 12,
+
+            // 4 Individual Margin Sides
+            marginTop: 20,
+            marginRight: 20,
+            marginBottom: 20,
+            marginLeft: 20,
+
+            // 4 Individual Padding Sides
+            paddingTop: 16,
+            paddingRight: 16,
+            paddingBottom: 16,
+            paddingLeft: 16,
+
+            // 4 Individual Border Sides
+            borderTop: 6,
+            borderRight: 6,
+            borderBottom: 6,
+            borderLeft: 6
+        };
+
+        // --- DOM ELEMENT REFERENCES ---
+        const elements = {
+            selectDisplay: document.getElementById('selectDisplay'),
+            selectBoxSizing: document.getElementById('selectBoxSizing'),
+
+            // Core Dimensions Sliders
+            sliderWidth: document.getElementById('sliderWidth'),
+            sliderHeight: document.getElementById('sliderHeight'),
+            sliderRadius: document.getElementById('sliderRadius'),
+            valWidth: document.getElementById('valWidth'),
+            valHeight: document.getElementById('valHeight'),
+            valRadius: document.getElementById('valRadius'),
+
+            // Margin Sliders & Values
+            sliderMarginTop: document.getElementById('sliderMarginTop'),
+            sliderMarginRight: document.getElementById('sliderMarginRight'),
+            sliderMarginBottom: document.getElementById('sliderMarginBottom'),
+            sliderMarginLeft: document.getElementById('sliderMarginLeft'),
+            valMarginTop: document.getElementById('valMarginTop'),
+            valMarginRight: document.getElementById('valMarginRight'),
+            valMarginBottom: document.getElementById('valMarginBottom'),
+            valMarginLeft: document.getElementById('valMarginLeft'),
+
+            // Padding Sliders & Values
+            sliderPaddingTop: document.getElementById('sliderPaddingTop'),
+            sliderPaddingRight: document.getElementById('sliderPaddingRight'),
+            sliderPaddingBottom: document.getElementById('sliderPaddingBottom'),
+            sliderPaddingLeft: document.getElementById('sliderPaddingLeft'),
+            valPaddingTop: document.getElementById('valPaddingTop'),
+            valPaddingRight: document.getElementById('valPaddingRight'),
+            valPaddingBottom: document.getElementById('valPaddingBottom'),
+            valPaddingLeft: document.getElementById('valPaddingLeft'),
+
+            // Border Sliders & Values
+            sliderBorderTop: document.getElementById('sliderBorderTop'),
+            sliderBorderRight: document.getElementById('sliderBorderRight'),
+            sliderBorderBottom: document.getElementById('sliderBorderBottom'),
+            sliderBorderLeft: document.getElementById('sliderBorderLeft'),
+            valBorderTop: document.getElementById('valBorderTop'),
+            valBorderRight: document.getElementById('valBorderRight'),
+            valBorderBottom: document.getElementById('valBorderBottom'),
+            valBorderLeft: document.getElementById('valBorderLeft'),
+
+            // UI Badges & Educational Notes
+            displayBadge: document.getElementById('displayBadge'),
+            educationalNote: document.getElementById('educationalNote'),
+            noteTitle: document.getElementById('noteTitle'),
+            noteBody: document.getElementById('noteBody'),
+
+            // Layers
+            box1MarginLayer: document.getElementById('box1MarginLayer'),
+            box1BorderLayer: document.getElementById('box1BorderLayer'),
+            box1PaddingLayer: document.getElementById('box1PaddingLayer'),
+            box1ContentLayer: document.getElementById('box1ContentLayer'),
+            box1InnerDim: document.getElementById('box1InnerDim'),
+
+            // Computed Diagram Values
+            diagMarginT: document.getElementById('diagMarginT'),
+            diagMarginR: document.getElementById('diagMarginR'),
+            diagMarginB: document.getElementById('diagMarginB'),
+            diagMarginL: document.getElementById('diagMarginL'),
+
+            diagBorderT: document.getElementById('diagBorderT'),
+            diagBorderR: document.getElementById('diagBorderR'),
+            diagBorderB: document.getElementById('diagBorderB'),
+            diagBorderL: document.getElementById('diagBorderL'),
+
+            diagPaddingT: document.getElementById('diagPaddingT'),
+            diagPaddingR: document.getElementById('diagPaddingR'),
+            diagPaddingB: document.getElementById('diagPaddingB'),
+            diagPaddingL: document.getElementById('diagPaddingL'),
+
+            calcContentVal: document.getElementById('calcContentVal'),
+            calcTotalVal: document.getElementById('calcTotalVal'),
+
+            codeCssDisplay: document.getElementById('codeCssDisplay'),
+            btnCopyCss: document.getElementById('btnCopyCss'),
+            btnReset: document.getElementById('btnReset'),
+
+            // Tabs
+            tabBtnMain: document.getElementById('tabBtnMain'),
+            tabBtnMargin: document.getElementById('tabBtnMargin'),
+            tabBtnPadding: document.getElementById('tabBtnPadding'),
+            tabBtnBorder: document.getElementById('tabBtnBorder'),
+            tabContentMain: document.getElementById('tabContentMain'),
+            tabContentMargin: document.getElementById('tabContentMargin'),
+            tabContentPadding: document.getElementById('tabContentPadding'),
+            tabContentBorder: document.getElementById('tabContentBorder')
+        };
+
+        // --- EDUCATIONAL NOTES MAP ---
+        const educationalNotes = {
+            block: {
+                title: 'Display Mode: block',
+                body: 'Block elements stack vertically, fill container width by default, and fully respect all width, height, 4-side margins, and 4-side padding properties.',
+                badgeClass: 'text-[10px] px-2 py-0.5 rounded-full font-mono bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+            },
+            'inline-block': {
+                title: 'Display Mode: inline-block',
+                body: 'Inline-Block elements flow side-by-side with surrounding inline content (like Box 2) while respecting custom width, height, and all 4 individual margin and padding sides.',
+                badgeClass: 'text-[10px] px-2 py-0.5 rounded-full font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+            },
+            inline: {
+                title: 'Display Mode: inline (Warning: Restricted Sizing)',
+                body: 'Inline elements flow within text. CRITICAL: Explicit width, height, top margin, and bottom margin are IGNORED by CSS in inline mode! Left/Right margins and all 4 paddings still apply visually.',
+                badgeClass: 'text-[10px] px-2 py-0.5 rounded-full font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30'
+            }
+        };
+
+        // --- REAL-TIME VISUALIZER UPDATE FUNCTION ---
+        function updateVisualizer() {
+            const isInline = state.display === 'inline';
+
+            // 1. Update Slider Value Text Labels
+            elements.valWidth.textContent = `${state.width}px`;
+            elements.valHeight.textContent = `${state.height}px`;
+            elements.valRadius.textContent = `${state.borderRadius}px`;
+
+            elements.valMarginTop.textContent = `${state.marginTop}px`;
+            elements.valMarginRight.textContent = `${state.marginRight}px`;
+            elements.valMarginBottom.textContent = `${state.marginBottom}px`;
+            elements.valMarginLeft.textContent = `${state.marginLeft}px`;
+
+            elements.valPaddingTop.textContent = `${state.paddingTop}px`;
+            elements.valPaddingRight.textContent = `${state.paddingRight}px`;
+            elements.valPaddingBottom.textContent = `${state.paddingBottom}px`;
+            elements.valPaddingLeft.textContent = `${state.paddingLeft}px`;
+
+            elements.valBorderTop.textContent = `${state.borderTop}px`;
+            elements.valBorderRight.textContent = `${state.borderRight}px`;
+            elements.valBorderBottom.textContent = `${state.borderBottom}px`;
+            elements.valBorderLeft.textContent = `${state.borderLeft}px`;
+
+            // 2. Apply Display property to Margin Layer (Outer Container)
+            elements.box1MarginLayer.style.display = state.display;
+
+            // 3. Apply Individual Margins (Top/Bottom ignored visually by browser on inline elements)
+            if (isInline) {
+                elements.box1MarginLayer.style.marginTop = '0px';
+                elements.box1MarginLayer.style.marginBottom = '0px';
+            } else {
+                elements.box1MarginLayer.style.marginTop = `${state.marginTop}px`;
+                elements.box1MarginLayer.style.marginBottom = `${state.marginBottom}px`;
+            }
+            elements.box1MarginLayer.style.marginRight = `${state.marginRight}px`;
+            elements.box1MarginLayer.style.marginLeft = `${state.marginLeft}px`;
+
+            // 4. Apply Individual Borders & Radius
+            elements.box1BorderLayer.style.borderTopWidth = `${state.borderTop}px`;
+            elements.box1BorderLayer.style.borderRightWidth = `${state.borderRight}px`;
+            elements.box1BorderLayer.style.borderBottomWidth = `${state.borderBottom}px`;
+            elements.box1BorderLayer.style.borderLeftWidth = `${state.borderLeft}px`;
+
+            const maxBorder = Math.max(state.borderTop, state.borderRight, state.borderBottom, state.borderLeft);
+            elements.box1MarginLayer.style.borderRadius = `${state.borderRadius + maxBorder}px`;
+            elements.box1BorderLayer.style.borderRadius = `${state.borderRadius}px`;
+
+            // 5. Apply Individual Paddings
+            elements.box1PaddingLayer.style.paddingTop = `${state.paddingTop}px`;
+            elements.box1PaddingLayer.style.paddingRight = `${state.paddingRight}px`;
+            elements.box1PaddingLayer.style.paddingBottom = `${state.paddingBottom}px`;
+            elements.box1PaddingLayer.style.paddingLeft = `${state.paddingLeft}px`;
+
+            // 6. Calculate Content Box Dimensions based on box-sizing
+            let contentW = state.width;
+            let contentH = state.height;
+
+            const horizPadding = state.paddingLeft + state.paddingRight;
+            const vertPadding = state.paddingTop + state.paddingBottom;
+            const horizBorder = state.borderLeft + state.borderRight;
+            const vertBorder = state.borderTop + state.borderBottom;
+
+            if (state.boxSizing === 'border-box' && !isInline) {
+                contentW = Math.max(0, state.width - horizPadding - horizBorder);
+                contentH = Math.max(0, state.height - vertPadding - vertBorder);
+            }
+
+            if (isInline) {
+                elements.box1ContentLayer.style.width = 'auto';
+                elements.box1ContentLayer.style.height = 'auto';
+                elements.box1InnerDim.textContent = 'Auto (Inline)';
+            } else {
+                elements.box1ContentLayer.style.width = `${contentW}px`;
+                elements.box1ContentLayer.style.height = `${contentH}px`;
+                elements.box1InnerDim.textContent = `${contentW}px × ${contentH}px`;
+            }
+
+            // 7. Update Computed Schematic Diagram
+            elements.diagMarginT.textContent = isInline ? 0 : state.marginTop;
+            elements.diagMarginR.textContent = state.marginRight;
+            elements.diagMarginB.textContent = isInline ? 0 : state.marginBottom;
+            elements.diagMarginL.textContent = state.marginLeft;
+
+            elements.diagBorderT.textContent = state.borderTop;
+            elements.diagBorderR.textContent = state.borderRight;
+            elements.diagBorderB.textContent = state.borderBottom;
+            elements.diagBorderL.textContent = state.borderLeft;
+
+            elements.diagPaddingT.textContent = state.paddingTop;
+            elements.diagPaddingR.textContent = state.paddingRight;
+            elements.diagPaddingB.textContent = state.paddingBottom;
+            elements.diagPaddingL.textContent = state.paddingLeft;
+
+            elements.calcContentVal.textContent = isInline ? 'Auto (Inline)' : `${contentW} × ${contentH}`;
+
+            let totalW = isInline ? 'Auto' : (state.boxSizing === 'border-box' ? state.width : state.width + horizPadding + horizBorder) + state.marginLeft + state.marginRight;
+            let totalH = isInline ? 'Auto' : (state.boxSizing === 'border-box' ? state.height : state.height + vertPadding + vertBorder) + state.marginTop + state.marginBottom;
+
+            elements.calcTotalVal.textContent = isInline ? 'Auto (Flows Inline)' : `${totalW}px × ${totalH}px`;
+
+            // 8. Update Educational Insights
+            const noteInfo = educationalNotes[state.display];
+            elements.noteTitle.textContent = noteInfo.title;
+            elements.noteBody.textContent = noteInfo.body;
+            elements.displayBadge.textContent = `DISPLAY: ${state.display.toUpperCase()}`;
+            elements.displayBadge.className = noteInfo.badgeClass;
+
+            // 9. Generate Live CSS Code Output
+            generateCssCode();
+        }
+
+        function generateCssCode() {
+            let css = `/* Target Box 1 CSS */\n.box-1 {\n`;
+            css += `  display: ${state.display};\n`;
+            css += `  box-sizing: ${state.boxSizing};\n`;
+
+            if (state.display !== 'inline') {
+                css += `  width: ${state.width}px;\n`;
+                css += `  height: ${state.height}px;\n`;
+                css += `  margin-top: ${state.marginTop}px;\n`;
+                css += `  margin-right: ${state.marginRight}px;\n`;
+                css += `  margin-bottom: ${state.marginBottom}px;\n`;
+                css += `  margin-left: ${state.marginLeft}px;\n`;
+            } else {
+                css += `  /* width, height, top/bottom margin ignored in inline */\n`;
+                css += `  margin-right: ${state.marginRight}px;\n`;
+                css += `  margin-left: ${state.marginLeft}px;\n`;
+            }
+
+            css += `  padding-top: ${state.paddingTop}px;\n`;
+            css += `  padding-right: ${state.paddingRight}px;\n`;
+            css += `  padding-bottom: ${state.paddingBottom}px;\n`;
+            css += `  padding-left: ${state.paddingLeft}px;\n`;
+
+            css += `  border-style: solid;\n`;
+            css += `  border-color: #f59e0b;\n`;
+            css += `  border-top-width: ${state.borderTop}px;\n`;
+            css += `  border-right-width: ${state.borderRight}px;\n`;
+            css += `  border-bottom-width: ${state.borderBottom}px;\n`;
+            css += `  border-left-width: ${state.borderLeft}px;\n`;
+            css += `  border-radius: ${state.borderRadius}px;\n`;
+            css += `}`;
+
+            elements.codeCssDisplay.textContent = css;
+        }
+
+        // --- TAB SWITCHING LOGIC ---
+        function switchTab(activeBtn, activePanel) {
+            [elements.tabBtnMain, elements.tabBtnMargin, elements.tabBtnPadding, elements.tabBtnBorder].forEach(btn => {
+                btn.className = "tab-btn flex-1 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition";
+            });
+            [elements.tabContentMain, elements.tabContentMargin, elements.tabContentPadding, elements.tabContentBorder].forEach(panel => {
+                panel.classList.add('hidden');
+            });
+
+            activeBtn.className = "tab-btn flex-1 py-1.5 rounded-lg text-white bg-indigo-600 transition shadow";
+            activePanel.classList.remove('hidden');
+        }
+
+        // --- ATTACH EVENT LISTENERS ---
+        function attachListeners() {
+            // Dropdowns
+            elements.selectDisplay.addEventListener('change', (e) => {
+                state.display = e.target.value;
+                updateVisualizer();
+            });
+
+            elements.selectBoxSizing.addEventListener('change', (e) => {
+                state.boxSizing = e.target.value;
+                updateVisualizer();
+            });
+
+            // Tabs
+            elements.tabBtnMain.addEventListener('click', () => switchTab(elements.tabBtnMain, elements.tabContentMain));
+            elements.tabBtnMargin.addEventListener('click', () => switchTab(elements.tabBtnMargin, elements.tabContentMargin));
+            elements.tabBtnPadding.addEventListener('click', () => switchTab(elements.tabBtnPadding, elements.tabContentPadding));
+            elements.tabBtnBorder.addEventListener('click', () => switchTab(elements.tabBtnBorder, elements.tabContentBorder));
+
+            // Dimension Sliders
+            elements.sliderWidth.addEventListener('input', (e) => {state.width = parseInt(e.target.value); updateVisualizer();});
+            elements.sliderHeight.addEventListener('input', (e) => {state.height = parseInt(e.target.value); updateVisualizer();});
+            elements.sliderRadius.addEventListener('input', (e) => {state.borderRadius = parseInt(e.target.value); updateVisualizer();});
+
+            // Margin Sliders
+            elements.sliderMarginTop.addEventListener('input', (e) => {state.marginTop = parseInt(e.target.value); updateVisualizer();});
+            elements.sliderMarginRight.addEventListener('input', (e) => {state.marginRight = parseInt(e.target.value); updateVisualizer();});
+            elements.sliderMarginBottom.addEventListener('input', (e) => {state.marginBottom = parseInt(e.target.value); updateVisualizer();});
+            elements.sliderMarginLeft.addEventListener('input', (e) => {state.marginLeft = parseInt(e.target.value); updateVisualizer();});
+
+            // Padding Sliders
+            elements.sliderPaddingTop.addEventListener('input', (e) => {state.paddingTop = parseInt(e.target.value); updateVisualizer();});
+            elements.sliderPaddingRight.addEventListener('input', (e) => {state.paddingRight = parseInt(e.target.value); updateVisualizer();});
+            elements.sliderPaddingBottom.addEventListener('input', (e) => {state.paddingBottom = parseInt(e.target.value); updateVisualizer();});
+            elements.sliderPaddingLeft.addEventListener('input', (e) => {state.paddingLeft = parseInt(e.target.value); updateVisualizer();});
+
+            // Border Sliders
+            elements.sliderBorderTop.addEventListener('input', (e) => {state.borderTop = parseInt(e.target.value); updateVisualizer();});
+            elements.sliderBorderRight.addEventListener('input', (e) => {state.borderRight = parseInt(e.target.value); updateVisualizer();});
+            elements.sliderBorderBottom.addEventListener('input', (e) => {state.borderBottom = parseInt(e.target.value); updateVisualizer();});
+            elements.sliderBorderLeft.addEventListener('input', (e) => {state.borderLeft = parseInt(e.target.value); updateVisualizer();});
+
+            // Copy CSS Button
+            elements.btnCopyCss.addEventListener('click', () => {
+                const text = elements.codeCssDisplay.textContent;
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    const origHtml = elements.btnCopyCss.innerHTML;
+                    elements.btnCopyCss.innerHTML = `<i class="fa-solid fa-check text-[10px]"></i><span>Copied!</span>`;
+                    setTimeout(() => {elements.btnCopyCss.innerHTML = origHtml;}, 1800);
+                } catch (err) {
+                    console.error('Copy failed', err);
+                } finally {
+                    document.body.removeChild(textarea);
+                }
+            });
+
+            // Reset Defaults Button
+            elements.btnReset.addEventListener('click', () => {
+                state.display = 'block';
+                state.boxSizing = 'content-box';
+                state.width = 200;
+                state.height = 100;
+                state.borderRadius = 12;
+
+                state.marginTop = 20;
+                state.marginRight = 20;
+                state.marginBottom = 20;
+                state.marginLeft = 20;
+
+                state.paddingTop = 16;
+                state.paddingRight = 16;
+                state.paddingBottom = 16;
+                state.paddingLeft = 16;
+
+                state.borderTop = 6;
+                state.borderRight = 6;
+                state.borderBottom = 6;
+                state.borderLeft = 6;
+
+                elements.selectDisplay.value = 'block';
+                elements.selectBoxSizing.value = 'content-box';
+
+                elements.sliderWidth.value = 200;
+                elements.sliderHeight.value = 100;
+                elements.sliderRadius.value = 12;
+
+                elements.sliderMarginTop.value = 20;
+                elements.sliderMarginRight.value = 20;
+                elements.sliderMarginBottom.value = 20;
+                elements.sliderMarginLeft.value = 20;
+
+                elements.sliderPaddingTop.value = 16;
+                elements.sliderPaddingRight.value = 16;
+                elements.sliderPaddingBottom.value = 16;
+                elements.sliderPaddingLeft.value = 16;
+
+                elements.sliderBorderTop.value = 6;
+                elements.sliderBorderRight.value = 6;
+                elements.sliderBorderBottom.value = 6;
+                elements.sliderBorderLeft.value = 6;
+
+                switchTab(elements.tabBtnMain, elements.tabContentMain);
+                updateVisualizer();
+            });
+        }
+
+        // Initialize Application
+        window.onload = function () {
+            attachListeners();
+            updateVisualizer();
+        };
+    </script>
+</body>
+
+</html>

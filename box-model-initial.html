@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Box Model & Display Property Playground</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Fira Code -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(71, 85, 105, 1);
+        }
+
+        /* Distinct Color Coding for Box Model Layers */
+        .margin-layer {
+            background-color: rgba(251, 146, 60, 0.25);
+            /* Orange */
+            border: 1.5px dashed rgba(249, 115, 22, 0.6);
+        }
+
+        .border-layer {
+            background-color: rgba(234, 179, 8, 0.25);
+            /* Yellow/Gold */
+        }
+
+        .padding-layer {
+            background-color: rgba(34, 197, 94, 0.25);
+            /* Green */
+        }
+
+        .content-layer {
+            background-color: rgba(59, 130, 246, 0.35);
+            /* Blue */
+            border: 1px dashed rgba(96, 165, 250, 0.6);
+        }
+
+        /* Flow Area Guidelines */
+        .canvas-grid {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 16px 16px;
+        }
+
+        .smooth-box-transition {
+            transition: width 0.15s ease, height 0.15s ease, padding 0.15s ease, margin 0.15s ease, border-width 0.15s ease;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- HEADER BAR -->
+    <header
+        class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 px-4 py-3 flex items-center justify-between shadow-lg">
+        <div class="flex items-center space-x-3">
+            <div
+                class="bg-gradient-to-tr from-indigo-500 via-purple-500 to-amber-500 text-white p-2 rounded-xl shadow-md">
+                <i class="fa-solid fa-cube text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight tracking-wide text-white flex items-center space-x-2">
+                    <span>CSS Box Model Visualizer</span>
+                    <span id="displayBadge"
+                        class="text-[10px] px-2 py-0.5 rounded-full font-mono bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">DISPLAY:
+                        BLOCK</span>
+                </h1>
+                <p class="text-xs text-slate-400">Interactive box model layers & document flow inspector</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <button id="btnReset"
+                class="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition flex items-center space-x-1.5 border border-slate-700">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span class="hidden sm:inline">Reset Defaults</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN INTERFACE LAYOUT -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+
+        <!-- LEFT CONTROL PANEL -->
+        <aside
+            class="lg:col-span-5 xl:col-span-4 bg-slate-900/90 border-r border-slate-800 p-4 space-y-4 overflow-y-auto max-h-screen lg:max-h-[calc(100vh-61px)]">
+
+            <!-- DISPLAY & BOX-SIZING CONTROLS -->
+            <div class="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 space-y-3">
+                <h2
+                    class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span><i class="fa-solid fa-sliders text-indigo-400 mr-1.5"></i> Display & Sizing Model</span>
+                </h2>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Display Dropdown -->
+                    <div>
+                        <label for="selectDisplay" class="block text-xs font-mono text-slate-400 mb-1">display</label>
+                        <select id="selectDisplay"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="block" selected>block</option>
+                            <option value="inline-block">inline-block</option>
+                            <option value="inline">inline</option>
+                        </select>
+                    </div>
+
+                    <!-- Box Sizing Dropdown -->
+                    <div>
+                        <label for="selectBoxSizing"
+                            class="block text-xs font-mono text-slate-400 mb-1">box-sizing</label>
+                        <select id="selectBoxSizing"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="content-box" selected>content-box</option>
+                            <option value="border-box">border-box</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DIMENSIONS & LAYERS SLIDERS -->
+            <div class="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 space-y-3.5">
+                <h2
+                    class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span><i class="fa-solid fa-up-right-and-down-left-from-center text-indigo-400 mr-1.5"></i> Box
+                        Dimensions & Margins</span>
+                </h2>
+
+                <!-- Width Slider -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-blue-400">width:</span>
+                        <span id="valWidth" class="font-mono text-blue-300">200px</span>
+                    </div>
+                    <input type="range" id="sliderWidth" min="60" max="400" value="200"
+                        class="w-full accent-blue-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <!-- Height Slider -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-blue-400">height:</span>
+                        <span id="valHeight" class="font-mono text-blue-300">100px</span>
+                    </div>
+                    <input type="range" id="sliderHeight" min="40" max="300" value="100"
+                        class="w-full accent-blue-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <!-- Padding Slider -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-emerald-400">padding:</span>
+                        <span id="valPadding" class="font-mono text-emerald-300">20px</span>
+                    </div>
+                    <input type="range" id="sliderPadding" min="0" max="80" value="20"
+                        class="w-full accent-emerald-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <!-- Border Width Slider -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-amber-400">border-width:</span>
+                        <span id="valBorder" class="font-mono text-amber-300">8px</span>
+                    </div>
+                    <input type="range" id="sliderBorder" min="0" max="30" value="8"
+                        class="w-full accent-amber-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <!-- Margin Slider -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-orange-400">margin:</span>
+                        <span id="valMargin" class="font-mono text-orange-300">24px</span>
+                    </div>
+                    <input type="range" id="sliderMargin" min="0" max="80" value="24"
+                        class="w-full accent-orange-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <!-- Border Radius Slider -->
+                <div>
+                    <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                        <span class="font-mono text-purple-400">border-radius:</span>
+                        <span id="valRadius" class="font-mono text-purple-300">8px</span>
+                    </div>
+                    <input type="range" id="sliderRadius" min="0" max="40" value="8"
+                        class="w-full accent-purple-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+
+            <!-- EDUCATIONAL NOTES / WARNING BOX -->
+            <div id="educationalNote"
+                class="bg-indigo-950/40 border border-indigo-500/30 p-3.5 rounded-xl text-xs space-y-1.5">
+                <div class="flex items-center space-x-2 text-indigo-300 font-semibold">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span id="noteTitle">Display Mode: block</span>
+                </div>
+                <p id="noteBody" class="text-slate-300 leading-relaxed text-[11px]">
+                    Block elements stack vertically, take full container width by default (if not explicitly set), and
+                    respect all width, height, margin, and padding properties.
+                </p>
+            </div>
+
+        </aside>
+
+        <!-- RIGHT PREVIEW & CANVAS SECTION -->
+        <section
+            class="lg:col-span-7 xl:col-span-8 bg-slate-950 p-4 md:p-6 flex flex-col justify-between space-y-5 overflow-y-auto">
+
+            <!-- CANVAS CONTAINER -->
+            <div
+                class="bg-slate-900 border-2 border-slate-800 rounded-2xl p-4 md:p-6 shadow-2xl relative flex flex-col min-h-[380px]">
+
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="flex h-2.5 w-2.5 relative">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                        <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Document Flow Preview
+                            Canvas</h2>
+                    </div>
+
+                    <!-- Layer Legend -->
+                    <div class="hidden sm:flex items-center space-x-3 text-[11px] font-mono">
+                        <span class="flex items-center space-x-1">
+                            <span class="w-3 h-3 rounded bg-orange-500/40 border border-orange-500"></span>
+                            <span class="text-slate-400">Margin</span>
+                        </span>
+                        <span class="flex items-center space-x-1">
+                            <span class="w-3 h-3 rounded bg-amber-500/40 border border-amber-500"></span>
+                            <span class="text-slate-400">Border</span>
+                        </span>
+                        <span class="flex items-center space-x-1">
+                            <span class="w-3 h-3 rounded bg-emerald-500/40 border border-emerald-500"></span>
+                            <span class="text-slate-400">Padding</span>
+                        </span>
+                        <span class="flex items-center space-x-1">
+                            <span class="w-3 h-3 rounded bg-blue-500/40 border border-blue-500"></span>
+                            <span class="text-slate-400">Content</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- LIVE INTERACTIVE FLOW CANVAS -->
+                <div id="flowCanvas"
+                    class="canvas-grid flex-1 border border-slate-800 rounded-xl p-4 relative overflow-auto bg-slate-950/50 leading-relaxed text-slate-300 font-sans text-sm">
+
+                    <span class="text-slate-600 font-mono text-[11px] select-none block mb-2">&lt;!-- Normal Flow
+                        Container --&gt;</span>
+
+                    <!-- BOX 1 TARGET ELEMENT WITH NESTED COLOR-CODED LAYERS -->
+                    <div id="box1MarginLayer"
+                        class="margin-layer smooth-box-transition inline-block relative rounded-lg">
+                        <div id="box1BorderLayer"
+                            class="border-layer smooth-box-transition h-full w-full rounded-md border-amber-500 border-solid">
+                            <div id="box1PaddingLayer"
+                                class="padding-layer smooth-box-transition h-full w-full rounded">
+                                <div id="box1ContentLayer"
+                                    class="content-layer smooth-box-transition h-full w-full rounded flex flex-col items-center justify-center text-center p-2 text-white font-mono shadow-md">
+                                    <span class="font-bold text-sm tracking-wide text-blue-200">Box 1</span>
+                                    <span id="box1InnerDim" class="text-[10px] text-blue-300/80 font-mono">200px ×
+                                        100px</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BOX 2 SIBLING ELEMENT FOR FLOW INTERACTION -->
+                    <div id="box2Sibling"
+                        class="bg-slate-800 border border-slate-700 text-slate-300 font-mono p-3 rounded-xl inline-block shadow-md border-dashed">
+                        <div class="font-bold text-xs text-slate-200">Box 2</div>
+                        <div class="text-[10px] text-slate-400">Sibling Element</div>
+                    </div>
+
+                    <p class="text-xs text-slate-500 mt-4 font-sans italic">
+                        Text following Box 1 and Box 2 in normal document content flow to demonstrate inline wrapped
+                        text behavior.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- BOTTOM PANEL: COMPUTED DIAGRAM & LIVE CSS OUTPUT -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+
+                <!-- COMPUTED BOX MODEL BREAKDOWN DIAGRAM -->
+                <div class="md:col-span-6 bg-slate-900/90 rounded-2xl border border-slate-800 p-4 space-y-3">
+                    <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center space-x-2">
+                        <i class="fa-solid fa-calculator text-emerald-400"></i>
+                        <span>Computed Dimensions Breakdown</span>
+                    </h3>
+
+                    <!-- 2D Box Model Nested Diagram -->
+                    <div
+                        class="bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-[11px] text-center space-y-1">
+                        <!-- Margin Outer Ring -->
+                        <div class="bg-orange-950/30 border border-orange-500/40 p-2 rounded-lg text-orange-300">
+                            <div class="flex justify-between px-1 text-[10px] text-orange-400/80">
+                                <span>margin</span>
+                                <span id="calcMarginVal">24px</span>
+                            </div>
+
+                            <!-- Border Ring -->
+                            <div class="bg-amber-950/30 border border-amber-500/40 p-2 rounded-md text-amber-300 my-1">
+                                <div class="flex justify-between px-1 text-[10px] text-amber-400/80">
+                                    <span>border</span>
+                                    <span id="calcBorderVal">8px</span>
+                                </div>
+
+                                <!-- Padding Ring -->
+                                <div
+                                    class="bg-emerald-950/30 border border-emerald-500/40 p-2 rounded text-emerald-300 my-1">
+                                    <div class="flex justify-between px-1 text-[10px] text-emerald-400/80">
+                                        <span>padding</span>
+                                        <span id="calcPaddingVal">20px</span>
+                                    </div>
+
+                                    <!-- Content Core -->
+                                    <div
+                                        class="bg-blue-900/50 border border-blue-400/60 p-2 rounded text-blue-200 font-bold my-1">
+                                        <span>content: </span>
+                                        <span id="calcContentVal">200 × 100</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="pt-2 text-slate-400 flex justify-between items-center text-xs border-t border-slate-800/80 mt-2">
+                            <span>Total Space Rendered:</span>
+                            <span id="calcTotalVal" class="text-indigo-300 font-bold font-mono">256px × 156px</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LIVE GENERATED CSS CODE -->
+                <div
+                    class="md:col-span-6 bg-slate-900/90 rounded-2xl border border-slate-800 p-4 space-y-3 flex flex-col justify-between">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-code text-indigo-400 text-xs"></i>
+                            <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Live Generated CSS
+                            </h3>
+                        </div>
+                        <button id="btnCopyCss"
+                            class="px-2.5 py-1 text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition flex items-center space-x-1 shadow-sm">
+                            <i class="fa-regular fa-copy text-[10px]"></i>
+                            <span>Copy CSS</span>
+                        </button>
+                    </div>
+
+                    <pre
+                        class="bg-slate-950 p-3 rounded-xl text-xs font-mono text-indigo-300 overflow-x-auto border border-slate-800 flex-1 leading-relaxed"><code id="codeCssDisplay">/* Box 1 CSS */
+.box-1 {
+  display: block;
+  box-sizing: content-box;
+  width: 200px;
+  height: 100px;
+  padding: 20px;
+  border: 8px solid #f59e0b;
+  margin: 24px;
+  border-radius: 8px;
+}</code></pre>
+                </div>
+
+            </div>
+
+        </section>
+    </main>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- APP STATE ---
+        const state = {
+            display: 'block',
+            boxSizing: 'content-box',
+            width: 200,
+            height: 100,
+            padding: 20,
+            borderWidth: 8,
+            margin: 24,
+            borderRadius: 8
+        };
+
+        // --- DOM ELEMENTS ---
+        const elements = {
+            selectDisplay: document.getElementById('selectDisplay'),
+            selectBoxSizing: document.getElementById('selectBoxSizing'),
+
+            sliderWidth: document.getElementById('sliderWidth'),
+            sliderHeight: document.getElementById('sliderHeight'),
+            sliderPadding: document.getElementById('sliderPadding'),
+            sliderBorder: document.getElementById('sliderBorder'),
+            sliderMargin: document.getElementById('sliderMargin'),
+            sliderRadius: document.getElementById('sliderRadius'),
+
+            valWidth: document.getElementById('valWidth'),
+            valHeight: document.getElementById('valHeight'),
+            valPadding: document.getElementById('valPadding'),
+            valBorder: document.getElementById('valBorder'),
+            valMargin: document.getElementById('valMargin'),
+            valRadius: document.getElementById('valRadius'),
+
+            displayBadge: document.getElementById('displayBadge'),
+            educationalNote: document.getElementById('educationalNote'),
+            noteTitle: document.getElementById('noteTitle'),
+            noteBody: document.getElementById('noteBody'),
+
+            box1MarginLayer: document.getElementById('box1MarginLayer'),
+            box1BorderLayer: document.getElementById('box1BorderLayer'),
+            box1PaddingLayer: document.getElementById('box1PaddingLayer'),
+            box1ContentLayer: document.getElementById('box1ContentLayer'),
+            box1InnerDim: document.getElementById('box1InnerDim'),
+
+            calcMarginVal: document.getElementById('calcMarginVal'),
+            calcBorderVal: document.getElementById('calcBorderVal'),
+            calcPaddingVal: document.getElementById('calcPaddingVal'),
+            calcContentVal: document.getElementById('calcContentVal'),
+            calcTotalVal: document.getElementById('calcTotalVal'),
+
+            codeCssDisplay: document.getElementById('codeCssDisplay'),
+            btnCopyCss: document.getElementById('btnCopyCss'),
+            btnReset: document.getElementById('btnReset')
+        };
+
+        // --- EDUCATIONAL NOTES MAP ---
+        const educationalNotes = {
+            block: {
+                title: 'Display Mode: block',
+                body: 'Block elements take up the full available width of their container by default (if no explicit width is set) and start on a new line. They fully respect all width, height, margin, and padding properties.',
+                badgeClass: 'text-[10px] px-2 py-0.5 rounded-full font-mono bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+            },
+            'inline-block': {
+                title: 'Display Mode: inline-block',
+                body: 'Inline-Block elements flow side-by-side with surrounding inline elements (like Box 2) while allowing custom width, height, margin, and padding adjustments. Perfect for buttons and cards.',
+                badgeClass: 'text-[10px] px-2 py-0.5 rounded-full font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+            },
+            inline: {
+                title: 'Display Mode: inline (Warning: Restricted Sizing)',
+                body: 'Inline elements flow directly within surrounding text. IMPORTANT: Explicit width, height, and top/bottom margins are IGNORED by CSS on inline elements. Horizontal margins and padding still apply.',
+                badgeClass: 'text-[10px] px-2 py-0.5 rounded-full font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30'
+            }
+        };
+
+        // --- REAL-TIME RENDER FUNCTION ---
+        function updateVisualizer() {
+            const isInline = state.display === 'inline';
+
+            // 1. Update Labels
+            elements.valWidth.textContent = `${state.width}px`;
+            elements.valHeight.textContent = `${state.height}px`;
+            elements.valPadding.textContent = `${state.padding}px`;
+            elements.valBorder.textContent = `${state.borderWidth}px`;
+            elements.valMargin.textContent = `${state.margin}px`;
+            elements.valRadius.textContent = `${state.borderRadius}px`;
+
+            // 2. Apply Display property to Margin Layer (Outer Container)
+            if (state.display === 'block') {
+                elements.box1MarginLayer.style.display = 'block';
+            } else if (state.display === 'inline-block') {
+                elements.box1MarginLayer.style.display = 'inline-block';
+            } else if (state.display === 'inline') {
+                elements.box1MarginLayer.style.display = 'inline';
+            }
+
+            // 3. Apply Margin
+            if (isInline) {
+                // Vertical margin ignored on inline
+                elements.box1MarginLayer.style.margin = `0px ${state.margin}px`;
+            } else {
+                elements.box1MarginLayer.style.margin = `${state.margin}px`;
+            }
+
+            // 4. Apply Border & Radius
+            elements.box1BorderLayer.style.borderWidth = `${state.borderWidth}px`;
+            elements.box1MarginLayer.style.borderRadius = `${state.borderRadius + state.borderWidth}px`;
+            elements.box1BorderLayer.style.borderRadius = `${state.borderRadius}px`;
+
+            // 5. Apply Padding
+            elements.box1PaddingLayer.style.padding = `${state.padding}px`;
+
+            // 6. Calculate Content Box Dimensions based on box-sizing
+            let contentW = state.width;
+            let contentH = state.height;
+
+            if (state.boxSizing === 'border-box' && !isInline) {
+                contentW = Math.max(0, state.width - (state.padding * 2) - (state.borderWidth * 2));
+                contentH = Math.max(0, state.height - (state.padding * 2) - (state.borderWidth * 2));
+            }
+
+            if (isInline) {
+                elements.box1ContentLayer.style.width = 'auto';
+                elements.box1ContentLayer.style.height = 'auto';
+                elements.box1InnerDim.textContent = 'Auto (Inline)';
+            } else {
+                elements.box1ContentLayer.style.width = `${contentW}px`;
+                elements.box1ContentLayer.style.height = `${contentH}px`;
+                elements.box1InnerDim.textContent = `${contentW}px × ${contentH}px`;
+            }
+
+            // 7. Calculate Total Rendered Footprint
+            let totalW = isInline ? 'Auto' : (state.boxSizing === 'border-box' ? state.width : state.width + (state.padding * 2) + (state.borderWidth * 2)) + (state.margin * 2);
+            let totalH = isInline ? 'Auto' : (state.boxSizing === 'border-box' ? state.height : state.height + (state.padding * 2) + (state.borderWidth * 2)) + (state.margin * 2);
+
+            elements.calcMarginVal.textContent = isInline ? `0px ${state.margin}px` : `${state.margin}px`;
+            elements.calcBorderVal.textContent = `${state.borderWidth}px`;
+            elements.calcPaddingVal.textContent = `${state.padding}px`;
+            elements.calcContentVal.textContent = isInline ? 'Auto (Inline)' : `${contentW}px × ${contentH}px`;
+            elements.calcTotalVal.textContent = isInline ? 'Auto (Flows Inline)' : `${totalW}px × ${totalH}px`;
+
+            // 8. Update Educational Insights
+            const noteInfo = educationalNotes[state.display];
+            elements.noteTitle.textContent = noteInfo.title;
+            elements.noteBody.textContent = noteInfo.body;
+            elements.displayBadge.textContent = `DISPLAY: ${state.display.toUpperCase()}`;
+            elements.displayBadge.className = noteInfo.badgeClass;
+
+            // 9. Generate CSS Code
+            generateCssCode(contentW, contentH);
+        }
+
+        function generateCssCode(contentW, contentH) {
+            let css = `/* Target Box 1 CSS */\n.box-1 {\n`;
+            css += `  display: ${state.display};\n`;
+            css += `  box-sizing: ${state.boxSizing};\n`;
+
+            if (state.display !== 'inline') {
+                css += `  width: ${state.width}px;\n`;
+                css += `  height: ${state.height}px;\n`;
+                css += `  margin: ${state.margin}px;\n`;
+            } else {
+                css += `  /* width & height ignored in inline mode */\n`;
+                css += `  margin: 0px ${state.margin}px; /* top/bottom margin ignored */\n`;
+            }
+
+            css += `  padding: ${state.padding}px;\n`;
+            css += `  border: ${state.borderWidth}px solid #f59e0b;\n`;
+            css += `  border-radius: ${state.borderRadius}px;\n`;
+            css += `}`;
+
+            elements.codeCssDisplay.textContent = css;
+        }
+
+        // --- EVENT LISTENERS ---
+        function attachListeners() {
+            elements.selectDisplay.addEventListener('change', (e) => {
+                state.display = e.target.value;
+                updateVisualizer();
+            });
+
+            elements.selectBoxSizing.addEventListener('change', (e) => {
+                state.boxSizing = e.target.value;
+                updateVisualizer();
+            });
+
+            elements.sliderWidth.addEventListener('input', (e) => {
+                state.width = parseInt(e.target.value);
+                updateVisualizer();
+            });
+
+            elements.sliderHeight.addEventListener('input', (e) => {
+                state.height = parseInt(e.target.value);
+                updateVisualizer();
+            });
+
+            elements.sliderPadding.addEventListener('input', (e) => {
+                state.padding = parseInt(e.target.value);
+                updateVisualizer();
+            });
+
+            elements.sliderBorder.addEventListener('input', (e) => {
+                state.borderWidth = parseInt(e.target.value);
+                updateVisualizer();
+            });
+
+            elements.sliderMargin.addEventListener('input', (e) => {
+                state.margin = parseInt(e.target.value);
+                updateVisualizer();
+            });
+
+            elements.sliderRadius.addEventListener('input', (e) => {
+                state.borderRadius = parseInt(e.target.value);
+                updateVisualizer();
+            });
+
+            // Copy CSS
+            elements.btnCopyCss.addEventListener('click', () => {
+                const text = elements.codeCssDisplay.textContent;
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    const origHtml = elements.btnCopyCss.innerHTML;
+                    elements.btnCopyCss.innerHTML = `<i class="fa-solid fa-check text-[10px]"></i><span>Copied!</span>`;
+                    setTimeout(() => {elements.btnCopyCss.innerHTML = origHtml;}, 1800);
+                } catch (err) {
+                    console.error('Copy failed', err);
+                } finally {
+                    document.body.removeChild(textarea);
+                }
+            });
+
+            // Reset Defaults
+            elements.btnReset.addEventListener('click', () => {
+                state.display = 'block';
+                state.boxSizing = 'content-box';
+                state.width = 200;
+                state.height = 100;
+                state.padding = 20;
+                state.borderWidth = 8;
+                state.margin = 24;
+                state.borderRadius = 8;
+
+                elements.selectDisplay.value = 'block';
+                elements.selectBoxSizing.value = 'content-box';
+                elements.sliderWidth.value = 200;
+                elements.sliderHeight.value = 100;
+                elements.sliderPadding.value = 20;
+                elements.sliderBorder.value = 8;
+                elements.sliderMargin.value = 24;
+                elements.sliderRadius.value = 8;
+
+                updateVisualizer();
+            });
+        }
+
+        // Initialize on Load
+        window.onload = function () {
+            attachListeners();
+            updateVisualizer();
+        };
+    </script>
+</body>
+
+</html>
